@@ -183,7 +183,7 @@ function openEvent(id) {
   render();
   scrollPanel.scrollTop = 0;
   content.querySelector('h3').focus({ preventScroll: true });
-  showNodes([id], events[id].title, state.tab === 'themes' && events[id].projects.length === 1 && events[id].projects.includes(state.project) && !search.value.trim());
+  showNodes([id], events[id].title);
 }
 
 function restoreSelection() {
@@ -262,3 +262,18 @@ content.addEventListener('click', event => {
 });
 
 render();
+
+// A collapsed index retains its selection, scroll position and open record.
+const archiveToggle = document.querySelector('#archive-toggle');
+const archivePanel = document.querySelector('#archive-panel');
+archiveToggle.addEventListener('click', () => {
+  cancelAnimationFrame(world.frame);
+  const previousArea = world.W * world.H;
+  archivePanel.hidden = !archivePanel.hidden;
+  document.querySelector('.workspace').classList.toggle('index-collapsed', archivePanel.hidden);
+  archiveToggle.setAttribute('aria-expanded', String(!archivePanel.hidden));
+  archiveToggle.textContent = archivePanel.hidden ? 'Show index' : 'Hide index';
+  // Preserve the camera centre and visible world area as the canvas grows.
+  const nextArea = artBody.clientWidth * artBody.clientHeight;
+  if (previousArea > 0 && nextArea > 0) world.z *= Math.sqrt(nextArea / previousArea);
+});
