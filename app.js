@@ -11,14 +11,7 @@ if (demo) {
 const status = document.querySelector('#art-status');
 const tabs = [...document.querySelectorAll('[data-tab]')];
 const artBody = document.querySelector('#art-body');
-artBody.innerHTML = window.planeMarkup;
-const plane = artBody.querySelector('#plane');
-const strips = Object.fromEntries([...plane.querySelectorAll('[data-strip]')].map(group => [group.dataset.strip, group]));
-const pins = document.createElementNS(plane.namespaceURI, 'g');
-plane.append(pins);
-
-const fullView = [20, 65, 1180, 660];
-plane.setAttribute('viewBox', fullView.join(' '));
+const world = new ArchitectureWorld(artBody);
 const state = { tab: 'themes', theme: null, project: null, artist: null, event: null, clip: 0, scroll: 0 };
 const dateShort = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const dateLong = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
@@ -44,69 +37,14 @@ function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 }
 
-function focusView(target) {
-  cancelAnimationFrame(frame);
-  const from = plane.getAttribute('viewBox').split(/\s+/).map(Number);
-  if (motion.matches) {
-    plane.setAttribute('viewBox', target.join(' '));
-    return;
-  }
-  const start = performance.now();
-  function update(now) {
-    const progress = Math.min(1, (now - start) / 520);
-    const eased = 1 - (1 - progress) ** 3;
-    const box = from.map((n, i) => n + (target[i] - n) * eased);
-    plane.setAttribute('viewBox', box.join(' '));
-    if (progress < 1) frame = requestAnimationFrame(update);
-  }
-  frame = requestAnimationFrame(update);
-}
-
 function focusStrips(ids, label) {
-  pins.replaceChildren();
-  Object.entries(strips).forEach(([id, strip]) => strip.classList.toggle('dim', ids.length > 0 && !ids.includes(id)));
   status.textContent = label;
-  if (!ids.length) {
-    focusView(fullView);
-    return;
-  }
-  const boxes = ids.map(id => strips[id].getBBox());
-  const left = Math.min(...boxes.map(b => b.x));
-  const right = Math.max(...boxes.map(b => b.x + b.width));
-  const top = Math.min(...boxes.map(b => b.y));
-  const bottom = Math.max(...boxes.map(b => b.y + b.height));
-  const width = Math.max(230, (right - left) * 1.19 + 32);
-  const height = Math.max(145, (bottom - top) * 1.19 + 32);
-  focusView([(left + right - width) / 2, (top + bottom - height) / 2, width, height]);
+  world.focus(ids);
 }
-
 function showNodes(ids, label, keepView = false) {
-  pins.replaceChildren();
-  for (const [projectId, project] of Object.entries(projects)) {
-    strips[projectId].classList.toggle('dim', ids.length > 0 && !ids.some(id => project.nodes[id]));
-    for (const id of ids) {
-      const point = project.nodes[id];
-      if (!point) continue;
-      const pin = document.createElementNS(plane.namespaceURI, 'g');
-      pin.classList.add('map-pin');
-      pin.dataset.event = id;
-      pin.setAttribute('transform', 'translate(' + point.join(' ') + ')');
-      pin.setAttribute('role', 'button');
-      pin.setAttribute('tabindex', '0');
-      pin.setAttribute('aria-label', events[id].title);
-      pin.innerHTML = '<circle class="pin-hit" r="15"/><circle class="pin-ring" r="9"/><circle class="pin-center" r="3.5"/>';
-      pin.addEventListener('click', () => openEvent(id));
-      pin.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          openEvent(id);
-        }
-      });
-      pins.append(pin);
-    }
-  }
-  status.textContent = label;
-  if (!keepView) focusView(fullView);
+  const groups = Object.keys(projects).filter(pid => ids.some(id => projects[pid].nodes[id]));
+  status.textContent = label + (groups.length ? ' · Project location' : ' · No mapped building');
+  if (!keepView) world.focus(groups);
 }
 
 function disclosure(type, id, index, title, count, expanded) {
@@ -253,7 +191,8 @@ function restoreSelection() {
     const artist = artists.find(a => a.id === state.artist);
     const message = artist.programme.length ? artist.name + ' · ' + artist.programme.length + ' documented roles'
       : artist.name + ' · No programme activity in this view';
-    showNodes(artist.programme, message);
+    const visitorProjects = { V01: ['P06'], V02: ['P10'], V03: ['P02','P05','P14'], V04: ['P02'], V05: ['P12'], V06: ['P13'], V07: ['P09'] };
+    focusStrips(visitorProjects[artist.id] || [], message);
   } else if (state.tab === 'themes' && state.project) {
     focusStrips([state.project], projects[state.project].title);
   } else if (state.tab === 'themes' && state.theme) {

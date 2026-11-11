@@ -135,3 +135,7 @@ h1 { font: clamp(26px, 3.45vw, 48px)/1.13 var(--serif); letter-spacing: -.048em;
 @media (prefers-reduced-motion: reduce) {
   #plane [data-strip] { transition: none; }
 }
+
+/* Infinite architecture */
+@media(min-width:721px){.workspace{grid-template-columns:minmax(320px,30fr) minmax(0,70fr)}}
+.art-body{position:relative;margin:0 12px 10px}.architecture-canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}.architecture-canvas:active{cursor:grabbing}.world-controls{position:absolute;right:12px;top:12px;display:flex;gap:5px}.world-controls button{background:#fffdf9;border:1px solid #ddd4c7;border-radius:3px;padding:8px 12px}
