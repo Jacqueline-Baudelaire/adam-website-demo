@@ -1,6 +1,6 @@
 'use strict';
 
-const { demo, themes, projects, events, artists } = window.archive;
+const { demo, publishedArchive, themes, projects, events, artists } = window.archive;
 const content = document.querySelector('#archive-content');
 const scrollPanel = document.querySelector('#archive-scroll');
 const search = document.querySelector('#search');
@@ -27,6 +27,8 @@ const motion = matchMedia('(prefers-reduced-motion: reduce)');
 let frame = 0;
 
 const roles = {
+  event_description: 'Event description',
+  public_description: 'Published description',
   associated_record: 'Event record',
   research_record: 'Research record',
   programme_reference: 'Programme description',
@@ -173,9 +175,9 @@ function clipMarkup(event, eid) {
   const still = state.clip === 0 && event.still ? `<img src="${esc(window.embeddedMedia?.[event.still] ?? event.still)}" alt="Reference frame from this event">` : '';
   return `<div class="video-player">${still}<button class="play-cover" type="button" data-play aria-label="Play clip ${state.clip + 1}"><span aria-hidden="true">▶</span></button></div>
     <div class="video-meta"><span>Clip ${String(state.clip + 1).padStart(2, '0')} / ${event.videos.length} · ${esc(selected.name)}</span>
-    <a href="${esc(selected.url)}" target="_blank" rel="noopener noreferrer">Open original ↗</a></div>
+    <a href="${esc(selected.url)}" target="_blank" rel="noopener noreferrer">Open video ↗</a></div>
     <div class="clip-list" aria-label="Event clips">${event.videos.map((clip, i) => `<button type="button" data-clip="${i}" aria-label="Select clip ${i + 1}" aria-pressed="${i === state.clip}">${String(i + 1).padStart(2, '0')}</button>`).join('')}</div>
-    <p class="muted">${localClips[eid + '/' + state.clip] ? 'Local preview available. ' : 'Drive playback may require access. '}From the working video index.</p>`;
+    <p class="muted">${publishedArchive ? 'Verified event footage.' : 'From the working video index.'}</p>`;
 }
 
 function playClip() {
@@ -183,6 +185,11 @@ function playClip() {
   const video = e.videos[state.clip];
   const player = document.querySelector('.video-player');
   const local = localClips[state.event + '/' + state.clip];
+  if (video.src) {
+    player.innerHTML = `<video controls playsinline autoplay src="${esc(video.src)}" aria-label="Event video"></video>`;
+    player.firstElementChild.focus();
+    return;
+  }
   if (local) {
     player.innerHTML = `<video controls playsinline autoplay src="${window.embeddedMedia?.[local] ?? `media/${local}`}" aria-label="Event video preview"></video>`;
     player.firstElementChild.focus();
@@ -197,6 +204,12 @@ function detail(id) {
   const projectsLine = e.projects.map(pid => esc(projects[pid].title)).join(' · ');
   const moment = e.start?.includes('T') ? ' · ' + time.format(new Date(e.start)) + ' ET' : '';
   const names = e.people.length ? '<ul class="people">' + e.people.map(name => `<li>${esc(name)}</li>`).join('') + '</ul>' : '';
+  const credits = e.creditedPeople?.length
+    ? '<p class="detail-meta">Public credits · ' + e.creditedPeople.map(esc).join(', ') + '</p>'
+    : '';
+  const programme = e.programmePeople?.length
+    ? '<p class="detail-meta">Programme credits · ' + e.programmePeople.map(esc).join(', ') + '</p>'
+    : '';
   const calendarNote = names ? 'Calendar invitees. Attendance is unverified.'
     : e.unnamed ? 'The calendar contains invitation entries without display names.'
     : e.hasCalendar ? 'No invitee list was recorded for this occurrence.' : 'No calendar invitee record is available.';
@@ -208,8 +221,8 @@ function detail(id) {
     <button type="button" class="back" data-back>← Back to ${search.value.trim() ? 'results' : state.tab === 'artists' ? 'artists' : 'themes'}</button>
     <header class="detail-header"><span class="event-id">EVENT / ${id}</span><h3 tabindex="-1">${esc(e.title)}</h3>
     <p class="detail-meta">${dateLong.format(new Date(e.date))}${moment}${e.location ? ' · ' + esc(e.location) : ''}</p><p class="detail-meta">${projectsLine}</p></header>
-    <section><h4>People</h4>${names}<p class="muted">${calendarNote}</p></section>
-    <section><h4>Event Notes</h4>${notes}</section>
+    <section><h4>People</h4>${credits}${programme}${names}<p class="muted">${calendarNote}</p></section>
+    <section><h4>Descriptions</h4>${notes}</section>
     <section><h4>Video Documentation${e.videos.length ? ' · ' + e.videos.length : ''}</h4>
     <div id="clip-content">${e.videos.length ? clipMarkup(e, id) : '<p class="muted">No video is linked to this record.</p>'}</div></section>
     </article>`;
