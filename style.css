@@ -149,3 +149,12 @@ h1 { font: clamp(26px, 3.45vw, 48px)/1.13 var(--serif); letter-spacing: -.048em;
   .art-actions .reset { font-size:11px; padding:6px 3px; }
   .workspace.index-collapsed .art { grid-row:1; }
 }
+
+.relation-guide{margin:15px 0;padding:14px;background:var(--paper);border:1px solid var(--rule);line-height:1.55}
+.relation-guide h3{font:22px var(--serif);margin-bottom:8px}
+.relation-guide p{font-size:12px;margin:8px 0}
+.relation-card{border-top:1px solid var(--rule);padding:12px 0}
+.relation-card>button:first-child{display:flex;gap:10px;text-align:left;padding:0}
+.relation-card small{color:var(--accent)}.source-record{color:var(--accent);font-size:12px;padding:4px 0}
+.art-actions{flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:720px){#jenny-route{max-width:130px}.art-header{gap:6px}}

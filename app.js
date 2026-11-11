@@ -72,12 +72,32 @@ function themeIndex() {
   }).join('') + '</ul>';
 }
 
+
+function jennyRoute() {
+  const relations=[
+    ['P02','Souvenirs & invented artifacts','How branding, storytelling and the presentation of objects shape what feels authentic.','A155'],
+    ['P05','Homecoming archaeology','Discussion of invented artifacts for Homecoming and how their stories would be presented to visitors.','A155'],
+    ['P14','Campus architecture','Desk critiques on material, form, architectural concepts and the stories buildings communicate.','N001']
+  ];
+  return '<section class="relation-guide"><h3>One visitor, three projects</h3><p>The bridges in this drawing connect projects associated with Jenny’s discussions and critiques. They show a relationship, not a chronological route.</p>'+
+    relations.map(([pid,title,text,eid])=>'<div class="relation-card"><button type="button" data-relation="'+pid+'"><small>'+pid+'</small><strong>'+title+'</strong></button><p>'+text+'</p><button type="button" class="source-record" data-event="'+eid+'">Read '+(eid==='A155'?'22':'24')+' September notes →</button></div>').join('')+
+    '<p class="muted">Based on meeting and critique notes; this does not imply participation in every later event.</p></section>';
+}
+function enterJennyRoute() {
+  state.tab='artists';state.artist='V03';state.event=null;state.project=null;state.theme=null;search.value='';
+  tabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab==='artists')));
+  if(archivePanel.hidden)archiveToggle.click();
+  render();scrollPanel.scrollTop=0;restoreSelection();
+  content.querySelector('[data-artist="V03"]')?.scrollIntoView({block:'start'});
+}
+
 function artistRow(artist, i) {
   const expanded = state.artist === artist.id;
   let details = '';
   if (expanded) {
     const { programme, mentions, future } = artist;
     details = '<div class="branch">';
+    if (artist.id === 'V03') details += jennyRoute();
     if (programme.length) {
       details += '<h3 class="section-label">Documented roles</h3>' + eventList(programme);
     } else {
@@ -221,12 +241,14 @@ search.addEventListener('input', () => {
   render();
   scrollPanel.scrollTop = 0;
 });
-document.querySelector('#reset').addEventListener('click', () => focusStrips([], 'All themes'));
+document.querySelector('#reset').addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;search.value='';render();scrollPanel.scrollTop=0;focusStrips([], 'All 13 projects');});
+document.querySelector('#jenny-route').addEventListener('click', enterJennyRoute);
 
 content.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
-  const { theme, project, artist, event: id, clip, back, play } = button.dataset;
+  const { theme, project, artist, event: id, clip, back, play, relation } = button.dataset;
+  if(relation){focusStrips([relation], 'Jenny Hollowell · '+projects[relation].title);return;}
   if (id) {
     openEvent(id);
     return;
