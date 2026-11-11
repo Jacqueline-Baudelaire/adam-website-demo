@@ -3,7 +3,7 @@ class ArchitectureWorld {
 constructor(host){
 this.host=host;host.innerHTML='<canvas class="architecture-canvas" tabindex="0" aria-label="Infinite architecture. Drag to pan, scroll to zoom, arrow keys to move."></canvas><div class="world-controls"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
 const c=this.c=host.querySelector('canvas');this.g=c.getContext('2d');
-this.W=host.clientWidth;this.H=host.clientHeight;this.x=750;this.y=575;this.z=1;this.selected=[];this.units=new Map();this.links=new Map();
+this.W=host.clientWidth;this.H=host.clientHeight;this.x=710;this.y=510;this.z=1;this.selected=[];this.units=new Map();this.links=new Map();
 this.assets=window.buildingAssets.map((a,i)=>({...a,color:['#B783BD','#B783BD','#B783BD','#B783BD','#B783BD','#B783BD','#EF3B64','#76758B','#76758B','#DDACAA','#DDACAA','#F1AB3D','#F1AB3D'][i],im:new Image()}));
 Promise.all(this.assets.map(a=>new Promise((resolve,reject)=>{a.im.onload=()=>{const q=document.createElement('canvas');q.width=128;q.height=128;const g=q.getContext('2d');g.drawImage(a.im,0,0,128,128);a.alpha=g.getImageData(0,0,128,128).data;resolve()};a.im.onerror=reject;a.im.src=a.src}))).then(()=>{this.ready=true;this.focus(this.selected)}).catch(()=>document.querySelector('#art-status').textContent='Artwork could not load. Please reload.');
 new ResizeObserver(()=>{this.W=host.clientWidth;this.H=host.clientHeight;c.width=this.W*devicePixelRatio;c.height=this.H*devicePixelRatio;this.draw()}).observe(host);
@@ -17,21 +17,28 @@ const key=i+','+j;if(this.units.has(key))return this.units.get(key);
 let order=Array.from({length:13},(_,k)=>k);for(let k=12;k>0;k--){let m=Math.floor(this.hash(i,j,k+70)*(k+1));[order[k],order[m]]=[order[m],order[k]]}
 const nodes=order.map((k,n)=>{const a=this.assets[k],angle=n*2.39996+this.hash(i,j,93)*6.28,radius=Math.sqrt(n)*138,size=k===2?450:350;return {...a,key:key+':'+a.id,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius*.75,w:size*a.w/Math.max(a.w,a.h),h:size*a.h/Math.max(a.w,a.h)}});
 // Pack all thirteen into one compact, irregular rectangular unit.
-const placed=[],gap=16,binWidth=1750;
-for(const n of nodes){
-let best=null,score=Infinity;
+// Select the most compact packing that fills a landscape unit, rather
+// than leaving large unused bands between repeated units.
+let packed=null,bestPacking=Infinity;
+for(let binWidth=1100;binWidth<=1850;binWidth+=30){
+const placed=[],gap=6;
+for(const source of nodes){
+const n={...source};let best=null,score=Infinity;
 const xs=[0,...placed.map(a=>a.x+a.w+gap)],ys=[0,...placed.map(a=>a.y+a.h+gap)];
 for(const y of ys)for(const x of xs){
 if(x+n.w>binWidth)continue;
 if(placed.some(a=>x<a.x+a.w+gap&&x+n.w+gap>a.x&&y<a.y+a.h+gap&&y+n.h+gap>a.y))continue;
-let value=y+x*.12;
-if(value<score){score=value;best={x,y}}
+let value=y+x*.12;if(value<score){score=value;best={x,y}}
 }
 n.x=best.x;n.y=best.y;placed.push(n)
 }
-for(const n of nodes){n.x+=n.w/2;n.y+=n.h/2}
-const l=Math.min(...nodes.map(n=>n.x-n.w/2)),r=Math.max(...nodes.map(n=>n.x+n.w/2)),t=Math.min(...nodes.map(n=>n.y-n.h/2)),b=Math.max(...nodes.map(n=>n.y+n.h/2)),scale=Math.min(1400/(r-l),1050/(b-t),1.3);
-for(const n of nodes){n.x=i*1500+750+(n.x-(l+r)/2)*scale;n.y=j*1150+575+(n.y-(t+b)/2)*scale;n.w*=scale;n.h*=scale}
+const width=Math.max(...placed.map(n=>n.x+n.w)),height=Math.max(...placed.map(n=>n.y+n.h));
+const score=Math.abs(Math.log(width/height/1.4))*3+width*height/2500000;
+if(score<bestPacking){bestPacking=score;packed={placed,width,height}}
+}
+const scale=Math.min(1400/packed.width,1000/packed.height);
+nodes.splice(0,13,...packed.placed);
+for(const n of nodes){n.x=i*1420+710+(n.x+n.w/2-packed.width/2)*scale;n.y=j*1020+510+(n.y+n.h/2-packed.height/2)*scale;n.w*=scale;n.h*=scale}
 const candidates=[];for(let a=0;a<13;a++)for(let b=a+1;b<13;b++){const n=nodes[a],m=nodes[b],p=this.port(n,m),q=this.port(m,n);candidates.push({a,b,p,q,d:Math.hypot(p.x-q.x,p.y-q.y)})}
 candidates.sort((a,b)=>a.d-b.d);
 let parent=nodes.map((_,i)=>i),edges=[];const root=n=>parent[n]===n?n:(parent[n]=root(parent[n]));
@@ -42,16 +49,16 @@ const unit={i,j,nodes,edges};this.units.set(key,unit);return unit
 }
 between(a,b){
 const key=a.i+','+a.j+'>'+b.i+','+b.j;if(this.links.has(key))return this.links.get(key);
-let best=null,d=Infinity;for(const n of a.nodes)for(const m of b.nodes){let v=Math.hypot(n.x-m.x,n.y-m.y)-(n.w+m.w+n.h+m.h)*.18;if(v<d){d=v;best=[n,m]}}
+let best=null,d=Infinity;for(const n of a.nodes)for(const m of b.nodes){const p=this.port(n,m),q=this.port(m,n);let v=Math.hypot(p.x-q.x,p.y-q.y);if(v<d){d=v;best=[n,m]}}
 this.links.set(key,best);return best
 }
 nearest(id){
-let best=null,d=Infinity,ci=Math.floor(this.x/1500),cj=Math.floor(this.y/1150);
+let best=null,d=Infinity,ci=Math.floor(this.x/1420),cj=Math.floor(this.y/1020);
 for(let j=cj-1;j<=cj+1;j++)for(let i=ci-1;i<=ci+1;i++){let n=this.unit(i,j).nodes.find(n=>n.id===id),v=(n.x-this.x)**2+(n.y-this.y)**2;if(v<d){best=n;d=v}}return best
 }
 focus(ids){
 this.selected=ids.filter(id=>this.assets.some(a=>a.id===id));
-let x=750,y=575,z=Math.sqrt(this.W*this.H/(1500*1150*5.5/13));
+let x=710,y=510,z=Math.sqrt(this.W*this.H/(1420*1020*5.5/13));
 if(this.selected.length){let ns=this.selected.map(id=>this.nearest(id)),l=Math.min(...ns.map(n=>n.x-n.w/2)),r=Math.max(...ns.map(n=>n.x+n.w/2)),t=Math.min(...ns.map(n=>n.y-n.h/2)),b=Math.max(...ns.map(n=>n.y+n.h/2));x=(l+r)/2;y=(t+b)/2;z=Math.min(this.W/(r-l+230),this.H/(b-t+230),1.65)}
 cancelAnimationFrame(this.frame);let from=[this.x,this.y,this.z],start=performance.now();const run=now=>{let t=matchMedia('(prefers-reduced-motion: reduce)').matches?1:Math.min(1,(now-start)/520),e=1-(1-t)**3;[this.x,this.y,this.z]=from.map((v,i)=>v+([x,y,z][i]-v)*e);this.draw();if(t<1)this.frame=requestAnimationFrame(run)};this.frame=requestAnimationFrame(run)
 }
@@ -71,7 +78,7 @@ g.strokeStyle='#243047';g.lineWidth=1.4;g.lineJoin='round';shape(5);g.fillStyle=
 draw(){
 if(!this.ready)return;
 const g=this.g,z=this.z,W=this.W,H=this.H;g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-this.x,-this.y);
-const l=Math.floor((this.x-W/2/z)/1500)-1,r=Math.floor((this.x+W/2/z)/1500)+1,t=Math.floor((this.y-H/2/z)/1150)-1,b=Math.floor((this.y+H/2/z)/1150)+1;
+const l=Math.floor((this.x-W/2/z)/1420)-1,r=Math.floor((this.x+W/2/z)/1420)+1,t=Math.floor((this.y-H/2/z)/1020)-1,b=Math.floor((this.y+H/2/z)/1020)+1;
 const visible=[];for(let j=t;j<=b;j++)for(let i=l;i<=r;i++)visible.push(this.unit(i,j));
 for(const u of visible){for(const [a,b] of u.edges)this.bridge(a,b);this.bridge(...this.between(u,this.unit(u.i+1,u.j)));this.bridge(...this.between(u,this.unit(u.i,u.j+1)))}
 for(const u of visible)for(const n of u.nodes){g.drawImage(n.im,n.x-n.w/2,n.y-n.h/2,n.w,n.h);if(this.selected.includes(n.id)){g.strokeStyle='#984734';g.lineWidth=1.5/z;g.setLineDash([6/z,5/z]);g.strokeRect(n.x-n.w/2-8,n.y-n.h/2-8,n.w+16,n.h+16);g.setLineDash([])}}
