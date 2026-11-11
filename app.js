@@ -177,14 +177,14 @@ function clipMarkup(event, eid) {
     <div class="video-meta"><span>Clip ${String(state.clip + 1).padStart(2, '0')} / ${event.videos.length} · ${esc(selected.name)}</span>
     <a href="${esc(selected.url)}" target="_blank" rel="noopener noreferrer">Open video ↗</a></div>
     <div class="clip-list" aria-label="Event clips">${event.videos.map((clip, i) => `<button type="button" data-clip="${i}" aria-label="Select clip ${i + 1}" aria-pressed="${i === state.clip}">${String(i + 1).padStart(2, '0')}</button>`).join('')}</div>
-    <p class="muted">${publishedArchive ? 'Verified event footage.' : 'From the working video index.'}</p>`;
+    <p class="muted">${publishedArchive ? 'Matched to this event by recording time. Drive playback may require access.' : 'From the working video index.'}</p>`;
 }
 
 function playClip() {
   const e = events[state.event];
   const video = e.videos[state.clip];
   const player = document.querySelector('.video-player');
-  const local = localClips[state.event + '/' + state.clip];
+  const local = publishedArchive ? null : localClips[state.event + '/' + state.clip];
   if (video.src) {
     player.innerHTML = `<video controls playsinline autoplay src="${esc(video.src)}" aria-label="Event video"></video>`;
     player.firstElementChild.focus();
