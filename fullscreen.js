@@ -9,7 +9,7 @@
     button.dataset.fullscreen=key;buttons[key]=button;controls.append(button);
     button.addEventListener('click',async()=>{
       cancelAnimationFrame(world.frame);
-      if(mode===key){if(key==='art')await leave(button);return;}
+      if(mode===key){if(key==='art')sync('page');return;}
       sync(key);
       if(!document.fullscreenElement&&root.requestFullscreen&&document.fullscreenEnabled){
         try{await root.requestFullscreen();native=true;}catch{native=false;}
@@ -20,7 +20,7 @@
     mode=value;document.body.classList.toggle('art-fullscreen',value==='art');
     for(const [key,button] of Object.entries(buttons)){
       const label=key==='page'?'Page full screen':'Art full screen';
-      button.hidden=key==='page'&&value==='page';
+      button.hidden=key==='page'&&value!==null;
       button.textContent=key==='art'&&value==='art'?'⤢ Exit full screen':'⛶ '+label;
       button.setAttribute('aria-label',key==='art'&&value==='art'?'Exit full screen':label);
       button.setAttribute('aria-pressed',String(value===key));
