@@ -39,12 +39,12 @@ function esc(value) {
 
 function focusStrips(ids, label) {
   status.textContent = label;
-  world.focus(ids);
+  world.focus(ids, state.tab === 'artists' ? state.artist : null);
 }
 function showNodes(ids, label, keepView = false) {
   const groups = Object.keys(projects).filter(pid => ids.some(id => projects[pid].nodes[id]));
   status.textContent = label + (groups.length ? ' · Project location' : ' · No mapped building');
-  if (!keepView) world.focus(groups);
+  if (!keepView) world.focus(groups, state.tab === 'artists' ? state.artist : null);
 }
 
 function disclosure(type, id, index, title, count, expanded) {
