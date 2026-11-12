@@ -3,13 +3,13 @@
   const controls=world.host.querySelector('.world-controls');
   const buttons={};
   let mode=null,native=false;
-  for(const key of ['page','art']){
+  for(const key of ['page']){
     const button=document.createElement('button');
     button.type='button';button.className='world-fullscreen';
     button.dataset.fullscreen=key;buttons[key]=button;controls.append(button);
     button.addEventListener('click',async()=>{
       cancelAnimationFrame(world.frame);
-      if(mode===key){await leave(button);return;}
+      if(mode===key)return;
       sync(key);
       if(!document.fullscreenElement&&root.requestFullscreen&&document.fullscreenEnabled){
         try{await root.requestFullscreen();native=true;}catch{native=false;}
@@ -20,10 +20,10 @@
     mode=value;document.body.classList.toggle('art-fullscreen',value==='art');
     for(const [key,button] of Object.entries(buttons)){
       const label=key==='page'?'Page full screen':'Art full screen';
-      button.textContent=value===key?'⤢ Exit full screen':'⛶ '+label;
-      button.setAttribute('aria-label',value===key?'Exit full screen':label);
+      button.textContent='⛶ '+label;
+      button.setAttribute('aria-label',label);
       button.setAttribute('aria-pressed',String(value===key));
-      button.title=value===key?'Exit full screen (Esc)':key==='page'?'Full website: title, index and artwork':'Artwork only';
+      button.title=value===key?'Press Esc to exit full screen':key==='page'?'Full website: title, index and artwork':'Artwork only';
     }
   }
   async function leave(button=buttons[mode]||buttons.page){
