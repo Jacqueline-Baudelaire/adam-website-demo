@@ -1,7 +1,7 @@
 class ArchitectureWorld {
 constructor(host){
 this.host=host;host.innerHTML='<canvas class="architecture-canvas" tabindex="0" aria-label="Archive architecture. Drag to pan, scroll to zoom, arrow keys to move, plus and minus to zoom."></canvas><div class="world-controls"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
-const c=this.c=host.querySelector('canvas'),g=this.g=c.getContext('2d');this.W=1;this.H=1;this.x=768;this.y=512;this.z=1;this.selected=[];this.im=new Image();this.im.onload=()=>{this.repair=new Image();this.repair.onload=()=>{this.overview=document.createElement('canvas');this.overview.width=1536;this.overview.height=1024;const ctx=this.overview.getContext('2d');ctx.drawImage(this.im,0,0,1536,1024);for(const r of ArchitectureWorld.repairRegions)ctx.drawImage(this.repair,...r);this.buildMasks(this.overview);this.overviewMasks=this.masks;this.relayout();this.ready=true;this.focus(this.selected)};this.repair.onerror=this.im.onerror;this.repair.src=window.bridgeRepairParts.join('')};this.im.onerror=()=>{document.querySelector('#art-status').textContent='Artwork could not load. Please reload.'};this.im.src=window.jennyImageParts.join('');
+const c=this.c=host.querySelector('canvas'),g=this.g=c.getContext('2d');this.W=1;this.H=1;this.x=768;this.y=512;this.z=1;this.selected=[];this.im=new Image();this.im.onload=()=>{this.repair=new Image();this.repair.onload=()=>{this.overview=document.createElement('canvas');this.overview.width=1536;this.overview.height=1024;const ctx=this.overview.getContext('2d');ctx.drawImage(this.im,0,0,1536,1024);for(const r of ArchitectureWorld.repairRegions)ctx.drawImage(this.repair,...r);this.buildMasks(this.overview);this.overviewMasks=this.masks;this.relayout();this.ready=true;this.focus(this.selected);this.loadEnhanced()};this.repair.onerror=this.im.onerror;this.repair.src=window.bridgeRepairParts.join('')};this.im.onerror=()=>{document.querySelector('#art-status').textContent='Artwork could not load. Please reload.'};this.im.src=window.jennyImageParts.join('');
 new ResizeObserver(()=>{this.W=host.clientWidth;this.H=host.clientHeight;c.width=this.W*devicePixelRatio;c.height=this.H*devicePixelRatio;this.draw()}).observe(host);
 const pts=new Map();let prev=null;const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};const gesture=()=>{let a=[...pts.values()];return a.length>1?{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}:a.length?{...a[0],d:0}:null};c.onpointerdown=e=>{cancelAnimationFrame(this.frame);c.setPointerCapture(e.pointerId);pts.set(e.pointerId,pos(e));prev=gesture()};c.onpointermove=e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,pos(e));let a=gesture();this.x-=(a.x-prev.x)/this.z;this.y-=(a.y-prev.y)/this.z;if(a.d&&prev.d)this.zoom(a.d/prev.d,a.x,a.y);else this.draw();prev=a};c.onpointerup=c.onpointercancel=e=>{pts.delete(e.pointerId);prev=gesture()};c.addEventListener('wheel',e=>{e.preventDefault();let p=pos(e);this.zoom(Math.exp(-e.deltaY*.0015),p.x,p.y)},{passive:false});host.querySelectorAll('.world-controls button').forEach((b,i)=>b.onclick=()=>this.zoom(i?1/1.3:1.3));c.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key)){e.preventDefault();cancelAnimationFrame(this.frame);if(e.key==='+'||e.key==='=')this.zoom(1.2);else if(e.key==='-')this.zoom(1/1.2);else{this.x+=({ArrowLeft:-80,ArrowRight:80}[e.key]||0)/this.z;this.y+=({ArrowUp:-80,ArrowDown:80}[e.key]||0)/this.z;this.draw()}}};
 }
@@ -48,10 +48,36 @@ const scene=document.createElement('canvas');scene.width=layout.W;scene.height=l
 for(const a of layout.placed){const m=this.overviewMasks[a.id],c=document.createElement('canvas');c.width=Math.round(a.w);c.height=Math.round(a.h);c.getContext('2d').drawImage(m.canvas,0,0,c.width,c.height);m.canvas=c;m.x=a.x;m.y=a.y;ArchitectureWorld.boxes[a.id]=[a.x,a.y,c.width,c.height];g.drawImage(c,a.x,a.y);}
 this.overview=scene;
 }
+async loadEnhanced(){
+// Keep world coordinates and display-size masks fixed. Only the drawing source changes.
+this.enhancementAudit={};
+await Promise.all(Object.entries(this.overviewMasks).map(async([id,m])=>{
+ try {
+  const im=new Image();im.src=`assets/flat-clean-v2/${id}.webp`;
+  await im.decode();
+  const native=document.createElement('canvas');native.width=im.naturalWidth;native.height=im.naturalHeight;
+  const ctx=native.getContext('2d');ctx.drawImage(im,0,0);
+  const d=ctx.getImageData(0,0,native.width,native.height).data;
+  let l=native.width,t=native.height,r=-1,b=-1;
+  for(let y=0;y<native.height;y++)for(let x=0;x<native.width;x++)if(d[(y*native.width+x)*4+3]>24){l=Math.min(l,x);t=Math.min(t,y);r=Math.max(r,x);b=Math.max(b,y)}
+  if(r<l)throw new Error('Empty artwork');
+  m.hi=im;m.sourceRect=[l,t,r-l+1,b-t+1];
+  // Picking and dialog previews follow the enhanced silhouette in the same display box.
+  const mask=m.canvas.getContext('2d');mask.clearRect(0,0,m.canvas.width,m.canvas.height);
+  mask.drawImage(im,...m.sourceRect,0,0,m.canvas.width,m.canvas.height);
+  this.enhancementAudit[id]={loaded:true,width:im.naturalWidth,height:im.naturalHeight};
+ }catch(error){this.enhancementAudit[id]={loaded:false,error:String(error)}}
+}));
+this.enhancedReady=true;this.draw();
+}
+drawBuilding(m){const g=this.g;if(m.hi)g.drawImage(m.hi,...m.sourceRect,m.x,m.y,m.canvas.width,m.canvas.height);else g.drawImage(m.canvas,m.x,m.y)}
 draw(){if(!this.ready)return;const g=this.g,z=this.z,W=this.W,H=this.H;g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);g.clearRect(0,0,W,H);g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-this.x,-this.y);
-g.globalAlpha=this.selected.length?.2:1;g.drawImage(this.overview,0,0);g.globalAlpha=1;
-for(const id of this.selected){const m=this.overviewMasks[id];if(m)g.drawImage(m.canvas,m.x,m.y)}
-if(this.hovered){const m=this.overviewMasks[this.hovered];if(m){g.shadowColor='rgba(36,51,71,.25)';g.shadowBlur=6/z;g.drawImage(m.canvas,m.x,m.y)}}
+g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+g.globalAlpha=this.selected.length?.2:1;
+for(const a of ArchitectureWorld.layout.placed)this.drawBuilding(this.overviewMasks[a.id]);
+g.globalAlpha=1;
+for(const id of this.selected){const m=this.overviewMasks[id];if(m)this.drawBuilding(m)}
+if(this.hovered){const m=this.overviewMasks[this.hovered];if(m){g.shadowColor='rgba(36,51,71,.25)';g.shadowBlur=6/z;this.drawBuilding(m)}}
 g.restore();
 }
 }
