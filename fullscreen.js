@@ -18,6 +18,7 @@
   }
   function sync(value){
     mode=value;document.body.classList.toggle('art-fullscreen',value==='art');
+    (value==='art'?world.host:document.querySelector('.mast-meta')).append(controls);
     for(const [key,button] of Object.entries(buttons)){
       const label=key==='page'?'Page full screen':'Art full screen';
       button.hidden=key==='page'&&value!==null;

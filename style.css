@@ -172,3 +172,10 @@ body.art-fullscreen .art{position:fixed;inset:0;background:var(--white);z-index:
 body.art-fullscreen .art-body{position:absolute;inset:0;width:100%;height:100%;margin:0;border:0}
 body.art-fullscreen .world-controls{top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right))}
 @media(max-width:720px){.world-controls .world-fullscreen{font-size:9px;padding:0 8px}}
+
+/* Keep navigation controls beneath the artist credit, outside the artwork. */
+.mast-meta{gap:12px}
+.mast-meta .world-controls{position:static;align-items:center;justify-content:flex-end}
+.mast-meta .world-controls button{min-height:32px}
+.art-body{margin:6px 8px 6px}
+@media(max-width:720px){.masthead{height:154px;padding:10px 16px}.mast-meta{width:100%;gap:6px;align-items:flex-end}.workspace{height:calc(100dvh - 154px)}.mast-meta .world-controls{gap:4px}.mast-meta .world-controls button{padding:6px 9px;min-height:28px}.mast-meta .world-controls .world-fullscreen{padding:0 7px}.art-body{margin:4px 6px}}
