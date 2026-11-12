@@ -252,3 +252,6 @@ body.art-fullscreen .art,body.art-fullscreen .art-body{background:var(--paper)}
 .archive .search{border-color:rgba(104,98,89,.20);border-radius:2px}
 .archive .tabs{border-bottom-color:rgba(104,98,89,.16)}
 @media(prefers-reduced-motion:no-preference){.archive .tree-row{transition:background-color .15s ease}}
+
+.masthead .work-subtitle{margin-top:5px;font:14px/1.35 var(--sans);color:var(--muted);letter-spacing:.02em}
+@media(max-width:720px){.masthead .work-subtitle{font-size:12px;margin-top:3px}}
