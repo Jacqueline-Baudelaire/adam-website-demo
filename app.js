@@ -259,8 +259,8 @@ search.addEventListener('input', () => {
   render();
   scrollPanel.scrollTop = 0;
 });
-document.querySelector('#reset').addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;search.value='';render();scrollPanel.scrollTop=0;focusStrips([], 'All 13 projects');});
-document.querySelector('#artist-connections').addEventListener('click', enterArtists);
+document.querySelector('#reset')?.addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;search.value='';render();scrollPanel.scrollTop=0;focusStrips([], 'All 13 projects');});
+document.querySelector('#artist-connections')?.addEventListener('click', enterArtists);
 
 content.addEventListener('click', event => {
   const button = event.target.closest('button');
@@ -306,7 +306,7 @@ render();
 // A collapsed index retains its selection, scroll position and open record.
 const archiveToggle = document.querySelector('#archive-toggle');
 const archivePanel = document.querySelector('#archive-panel');
-archiveToggle.addEventListener('click', () => {
+archiveToggle?.addEventListener('click', () => {
   cancelAnimationFrame(world.frame);
   const previousArea = world.W * world.H;
   archivePanel.hidden = !archivePanel.hidden;

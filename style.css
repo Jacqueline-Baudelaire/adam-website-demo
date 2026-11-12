@@ -158,3 +158,9 @@ h1 { font: clamp(26px, 3.45vw, 48px)/1.13 var(--serif); letter-spacing: -.048em;
 .relation-card small{color:var(--accent)}.source-record{color:var(--accent);font-size:12px;padding:4px 0}
 .art-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:720px){#artist-connections{max-width:130px}.art-header{gap:6px}}
+
+/* Simplified exhibition header. */
+.masthead h1{font-size:clamp(25px,2.7vw,40px)}
+.art-body{margin-top:18px}
+.archive-header{padding-top:10px}
+@media(max-width:720px){.masthead{height:116px;align-items:flex-start;flex-direction:column;justify-content:center;gap:5px}.masthead h1{font-size:24px;line-height:1.12}.mast-meta{display:flex;font-size:11px;align-items:flex-start}.workspace{height:calc(100dvh - 116px)}.art-body{margin-top:10px}}
