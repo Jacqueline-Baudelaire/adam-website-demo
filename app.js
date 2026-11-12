@@ -149,7 +149,7 @@ const localClips = {
 
 function clipMarkup(event, eid) {
   const selected = event.videos[state.clip];
-  const still = state.clip === 0 && event.still ? `<img src="${esc(window.embeddedMedia?.[event.still] ?? event.still)}" alt="Reference frame from this event">` : '';
+  const still = '';
   return `<div class="video-player">${still}<button class="play-cover" type="button" data-play aria-label="Play clip ${state.clip + 1}"><span aria-hidden="true">▶</span></button></div>
     <div class="video-meta"><span>Clip ${String(state.clip + 1).padStart(2, '0')} / ${event.videos.length} · ${esc(selected.name)}</span>
     <a href="${esc(selected.url)}" target="_blank" rel="noopener noreferrer">Open video ↗</a></div>
