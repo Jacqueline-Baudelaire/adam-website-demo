@@ -67,10 +67,10 @@ function themeIndex() {
     const branch = expanded ? '<ul class="branch">' + children.map(([id, project]) => {
       const open = state.project === id;
       const ids = Object.keys(project.nodes);
-      return '<li>' + disclosure('project', id, id, project.title, ids.length, open) +
+      return '<li data-palette="' + esc(project.theme) + '">' + disclosure('project', id, id, project.title, ids.length, open) +
         (open ? eventList(ids) : '') + '</li>';
     }).join('') + '</ul>' : '';
-    return '<li>' + disclosure('theme', theme.id, String(i + 1).padStart(2, '0'), theme.title, children.length, expanded) + branch + '</li>';
+    return '<li data-palette="' + esc(theme.id) + '">' + disclosure('theme', theme.id, String(i + 1).padStart(2, '0'), theme.title, children.length, expanded) + branch + '</li>';
   }).join('') + '</ul>';
 }
 
