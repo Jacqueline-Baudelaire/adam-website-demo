@@ -83,12 +83,29 @@ function jennyRoute() {
     relations.map(([pid,title,text,eid])=>'<div class="relation-card"><button type="button" data-relation="'+pid+'"><small>'+pid+'</small><strong>'+title+'</strong></button><p>'+text+'</p><button type="button" class="source-record" data-event="'+eid+'">Read '+(eid==='A155'?'22':'24')+' September notes →</button></div>').join('')+
     '<p class="muted">Based on meeting and critique notes; this does not imply participation in every later event.</p></section>';
 }
-function enterJennyRoute() {
-  state.tab='artists';state.artist='V03';state.event=null;state.project=null;state.theme=null;search.value='';
-  tabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab==='artists')));
-  if(archivePanel.hidden)archiveToggle.click();
-  render();scrollPanel.scrollTop=0;restoreSelection();
-  content.querySelector('[data-artist="V03"]')?.scrollIntoView({block:'start'});
+
+const visitorProjects = { V01:['P06'], V02:['P10'], V03:['P02','P05','P14'], V04:['P02'], V05:['P12'], V06:['P13'], V07:['P09'] };
+const visitorContext = {
+V01:'Travel-film programme and essay-film workshop.',
+V02:'FLOOD story development and writers-room discussions.',
+V04:'Alps Sketch is represented within P02. This association does not imply participation in souvenir production.',
+V05:'Watermark and handmade-paper collaboration.',
+V06:'Named in the programme for the laser-rock performance; a programme listing alone does not confirm attendance.',
+V07:'Named musical collaborator in programme records; scheduling alone does not establish completion.'
+};
+function artistConnections(artist){
+if(artist.id==='V03')return jennyRoute();
+const ids=visitorProjects[artist.id]||[];
+if(!ids.length)return '<p class="artist-note">No project association has been verified for this guest. Available records are listed below.</p>';
+return '<section class="relation-guide"><h3>Project connections</h3><p>'+esc(visitorContext[artist.id])+'</p>'+
+ids.map(pid=>'<div class="relation-card"><button type="button" data-relation="'+pid+'"><small>'+pid+'</small><strong>'+esc(projects[pid].title)+'</strong></button></div>').join('')+
+'<p class="muted">Explore the programme and event records below.</p></section>';
+}
+function enterArtists(){
+state.tab='artists';state.artist=null;state.event=null;state.project=null;state.theme=null;search.value='';
+tabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab==='artists')));
+if(archivePanel.hidden)archiveToggle.click();
+render();scrollPanel.scrollTop=0;restoreSelection();
 }
 
 function artistRow(artist, i) {
@@ -97,7 +114,7 @@ function artistRow(artist, i) {
   if (expanded) {
     const { programme, mentions, future } = artist;
     details = '<div class="branch">';
-    if (artist.id === 'V03') details += jennyRoute();
+    details += artistConnections(artist);
     if (programme.length) {
       details += '<h3 class="section-label">Documented roles</h3>' + eventList(programme);
     } else {
@@ -211,7 +228,6 @@ function restoreSelection() {
     const artist = artists.find(a => a.id === state.artist);
     const message = artist.programme.length ? artist.name + ' · ' + artist.programme.length + ' documented roles'
       : artist.name + ' · No programme activity in this view';
-    const visitorProjects = { V01: ['P06'], V02: ['P10'], V03: ['P02','P05','P14'], V04: ['P02'], V05: ['P12'], V06: ['P13'], V07: ['P09'] };
     focusStrips(visitorProjects[artist.id] || [], message);
   } else if (state.tab === 'themes' && state.project) {
     focusStrips([state.project], projects[state.project].title);
@@ -242,13 +258,13 @@ search.addEventListener('input', () => {
   scrollPanel.scrollTop = 0;
 });
 document.querySelector('#reset').addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;search.value='';render();scrollPanel.scrollTop=0;focusStrips([], 'All 13 projects');});
-document.querySelector('#jenny-route').addEventListener('click', enterJennyRoute);
+document.querySelector('#artist-connections').addEventListener('click', enterArtists);
 
 content.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
   const { theme, project, artist, event: id, clip, back, play, relation } = button.dataset;
-  if(relation){focusStrips([relation], 'Jenny Hollowell · '+projects[relation].title);return;}
+  if(relation){focusStrips([relation], (artists.find(a=>a.id===state.artist)?.name||'Project')+' · '+projects[relation].title);return;}
   if (id) {
     openEvent(id);
     return;

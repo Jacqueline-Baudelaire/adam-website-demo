@@ -157,4 +157,4 @@ h1 { font: clamp(26px, 3.45vw, 48px)/1.13 var(--serif); letter-spacing: -.048em;
 .relation-card>button:first-child{display:flex;gap:10px;text-align:left;padding:0}
 .relation-card small{color:var(--accent)}.source-record{color:var(--accent);font-size:12px;padding:4px 0}
 .art-actions{flex-wrap:wrap;justify-content:flex-end}
-@media(max-width:720px){#jenny-route{max-width:130px}.art-header{gap:6px}}
+@media(max-width:720px){#artist-connections{max-width:130px}.art-header{gap:6px}}
