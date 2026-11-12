@@ -200,3 +200,15 @@ body.art-fullscreen .art,body.art-fullscreen .art-body{background:var(--paper)}
 .art-body{border:0}
 .p05-canvas-hint{background:transparent!important}
 @media(min-width:721px){.workspace:not(.index-collapsed){grid-template-columns:minmax(240px,22.3%) minmax(0,1fr)}.archive-header{padding-left:20px;padding-right:18px}.archive-scroll{padding-left:20px;padding-right:18px}.tabs{gap:18px;font-size:13px}}
+
+/* P01 palette study: architectural violet and ink, with quiet reading surfaces. */
+.tree-row[data-project="P01"]{border-radius:2px;border-left:3px solid #b879bc;padding-left:7px;margin:3px 0;color:#272521}
+.tree-row[data-project="P01"] .index-number,.tree-row[data-project="P01"] .chevron{color:#243347}
+.tree-row[data-project="P01"] .index-number{background:#e9d8ea;border:1px solid #b879bc;border-radius:2px;padding:3px 2px;font-size:9px;text-align:center}
+.tree-row[data-project="P01"]:hover{background:#f2e8f2}
+.tree-row[data-project="P01"][aria-expanded="true"]{background:#ecdfed;color:#243347;border-left-color:#94579a}
+.tree-row[data-project="P01"][aria-expanded="true"] strong{font-weight:650}
+.tree-row[data-project="P01"] + .event-list{margin:5px 0 12px 9px;padding-left:12px;border-left:1px solid #bd94c0}
+.tree-row[data-project="P01"] + .event-list li + li{border-top-color:#e7dce7}
+.tree-row[data-project="P01"] + .event-list .event-row:hover{background:#f2e8f2}
+.tree-row[data-project="P01"] + .event-list .chevron,.tree-row[data-project="P01"] + .event-list .has-video{color:#675176}
