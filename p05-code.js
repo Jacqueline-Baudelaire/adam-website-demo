@@ -22,7 +22,7 @@ async function load(pid){
  })();pending.set(pid,task);try{return await task}finally{pending.delete(pid)}
 }
 async function open(pid='P05',id){
- if(!catalog[pid])return;const token=++openToken;returnFocus=document.activeElement;activePid=pid;section=0;eventIndex=0;folds.clear();expanded=false;outlineHidden=true;dlg.classList.remove('expanded');dlg.classList.toggle('image-led',pid==='P05');
+ if(!catalog[pid])return;const token=++openToken;returnFocus=document.activeElement;activePid=pid;section=0;eventIndex=0;folds.clear();expanded=false;outlineHidden=true;dlg.classList.remove('expanded');dlg.classList.add('image-led');
  dlg.setAttribute('aria-label',pid+' architectural notation');if(!dlg.open)dlg.showModal();document.body.style.overflow='hidden';
  dlg.innerHTML=`<div class="lab-top"><span class="lab-file">${pid}.activity</span><button class="lab-close" data-close>Close ×</button></div><div class="lab-loading">Loading architectural notation…</div>`;
  try{const result=await load(pid);if(token!==openToken||!dlg.open)return;data=result;
@@ -96,8 +96,12 @@ if(section===4)media=`<div class="lab-plot"><svg id="lab-wave" viewBox="0 0 600 
 if(section===5)media='<div class="lab-two">'+fig(relation(),'RED / APERTURE AT THE EVENT')+`<div class="lab-plot"><svg viewBox="0 0 320 300" role="img" aria-label="Aperture ${ap}"><path d="M ${160-e.aperture/2} 70 V230 M ${160+e.aperture/2} 70 V230" fill="none" stroke="#ef6673" stroke-width="3"/><path d="M ${160-e.aperture/2} 150 H${160+e.aperture/2}" stroke="#8ba98d"/><circle cx="160" cy="150" r="4" fill="#c5ff72"/><text x="160" y="270" fill="#c5ff72" text-anchor="middle" font-size="17">w = ${ap}</text></svg></div></div>`;
 if(section===6)media=triptych()+`<div class="lab-op-list">${['offset(plane, δ)','fold(surface, θ)','subtract(void)','overlap(fragments)'].map((o,n)=>`<button data-operation="${n}" aria-pressed="${n===0}">${o}</button>`).join('')}</div><p class="lab-op-explanation">Offset: separate or displace planes to produce depth and a passage.</p>`;
 if(section===7){const a=data.assets[e.atlas];media='<div class="lab-two">'+fig(cell(1),'INDIVIDUAL COMPONENT')+`<figure><div class="lab-assembly"><svg viewBox="${a.w*2/3} 0 ${a.w/3} ${a.h}" role="img" aria-label="Original assembled event sequence"><image href="${a.src}" width="${a.w}" height="${a.h}"/></svg></div><figcaption>ASSEMBLY / ${e.atlas==='atlas3'?'4':'5'} EVENTS · SCROLL TO FOLLOW</figcaption></figure></div><p class="lab-note">The earlier vertical assembly is shown here. Its short, mutually reshaped joints informed the later building. It is not an exact diagram of the final floor plan.</p>`}
-if(section===8&&data.assets.grid)media=`<img class="lab-wide" src="${asset('grid')}" alt="${activePid} adopted layout study"><p class="lab-note">Adopted study: 7×7 PDF, page 14. The finished building is an artistic interpretation of this arrangement.</p>`;
-if(section===8&&!data.assets.grid)media=`<img class="lab-building" src="${(world.overviewMasks[activePid].hi?.src||world.overviewMasks[activePid].canvas.toDataURL())}" alt="${activePid} adopted building arrangement">`;
+if(section===8){
+ const pages={P01:1,P02:6,P03:7,P04:10,P05:14,P06:17,P08:19,P09:22,P10:27,P11:29,P12:32,P13:35,P14:37};
+ const revision={P03:'Revised single-floor study: the detached room joins the group.',P08:'Earlier study: the upper-left elevator was removed in the final artwork.',P14:'Earlier study: the final artwork uses a more compact arrangement.'};
+ media=`<img class="lab-wide fold-pair" src="assets/fold-study-v1/${activePid}.svg" alt="${activePid}: perspective and parallel projection of the same floor study">`;
+ snippets[8]+=`\n\n// Perspective + parallel: 7×7 study, page ${pages[activePid]}.\n// ${revision[activePid]||'Paired views of the selected layout study.'}\n// Study geometry is distinct from the final artistic surfaces.`;
+}
 const clean=document.createElement('div');clean.innerHTML=media;
 clean.querySelectorAll('.lab-note,.lab-op-list,.lab-op-explanation,.lab-range,#lab-experiment,.lab-stats,figcaption').forEach(n=>n.remove());
 return {media:clean.innerHTML,source:code(snippets[section])};}
@@ -135,7 +139,7 @@ function render(){
  drawWave(data.gaps[eventIndex]??0);
  dlg.querySelectorAll('.process-section').forEach(d=>d.addEventListener('toggle',()=>{const i=+d.id.split('-')[1];if(d.open)folds.delete(i);else folds.add(i)}));
  dlg.querySelectorAll('.lab-picture,.lab-wide,.lab-building,.lab-assembly').forEach((node,i)=>{node.tabIndex=0;node.setAttribute('role','button');node.setAttribute('aria-label','Enlarge artwork');node.dataset.zoom=i;});
- if(activePid==='P05')imageLedLayout();
+ imageLedLayout();
 }
 const zoom=document.createElement('dialog');zoom.id='p05-image-view';zoom.setAttribute('aria-label','Enlarged artwork');document.body.append(zoom);let zoomOrigin;
 function enlarge(node){zoomOrigin=node;const copy=node.cloneNode(true);copy.removeAttribute('tabindex');copy.removeAttribute('role');copy.removeAttribute('data-zoom');copy.style.height='';copy.querySelectorAll('[id]').forEach(el=>{const old=el.id;el.id='zoom-'+old;copy.querySelectorAll('[clip-path]').forEach(im=>{if(im.getAttribute('clip-path')===`url(#${old})`)im.setAttribute('clip-path',`url(#zoom-${old})`)})});zoom.replaceChildren();const closeButton=document.createElement('button');closeButton.textContent='[ close image × ]';closeButton.onclick=()=>zoom.close();zoom.append(closeButton,copy);zoom.showModal();closeButton.focus();}

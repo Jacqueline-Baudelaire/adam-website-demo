@@ -17,7 +17,7 @@ const world = new ArchitectureWorld(artBody);
 const overviewButton=document.createElement('button');
 overviewButton.type='button';overviewButton.id='reset';overviewButton.textContent='Overview';overviewButton.setAttribute('aria-label','Return to overview');overviewButton.title='Return to all projects';
 artBody.querySelector('.world-controls').append(overviewButton);
-const state = { tab: 'themes', theme: null, project: null, artist: null, event: null, clip: 0, scroll: 0 };
+const state = { tab: 'themes', theme: null, project: null, artist: null, event: null, scroll: 0 };
 const dateShort = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const dateLong = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
@@ -59,7 +59,7 @@ function disclosure(type, id, index, title, count, expanded) {
 function eventList(ids) {
   return '<ul class="event-list">' + ids.map(id => {
     const e = events[id];
-    return `<li><button type="button" class="event-row" data-event="${id}"><strong>${esc(e.title)}${e.videos.length ? '<span class="has-video" aria-label="Video available">▶</span>' : ''}</strong><small>${dateShort.format(new Date(e.date))}</small><span class="chevron" aria-hidden="true"></span></button></li>`;
+    return `<li><button type="button" class="event-row" data-event="${id}"><strong>${esc(e.title)}</strong><small>${dateShort.format(new Date(e.date))}</small><span class="chevron" aria-hidden="true"></span></button></li>`;
   }).join('') + '</ul>';
 }
 
@@ -143,42 +143,6 @@ function artistIndex() {
       guests.map(artistRow).join('') + '</ul>' : '');
 }
 
-const localClips = {
-  'A227/0': 'A227-01.mp4',
-  'A129/0': 'A129-01.mp4',
-  'A129/1': 'A129-02.mp4',
-  'A136/0': 'A136-01.mp4'
-};
-
-function clipMarkup(event, eid) {
-  const selected = event.videos[state.clip];
-  const still = '';
-  return `<div class="video-player">${still}<button class="play-cover" type="button" data-play aria-label="Play clip ${state.clip + 1}"><span aria-hidden="true">▶</span></button></div>
-    <div class="video-meta"><span>Clip ${String(state.clip + 1).padStart(2, '0')} / ${event.videos.length} · ${esc(selected.name)}</span>
-    <a href="${esc(selected.url)}" target="_blank" rel="noopener noreferrer">Open video ↗</a></div>
-    <div class="clip-list" aria-label="Event clips">${event.videos.map((clip, i) => `<button type="button" data-clip="${i}" aria-label="Select clip ${i + 1}" aria-pressed="${i === state.clip}">${String(i + 1).padStart(2, '0')}</button>`).join('')}</div>
-    <p class="muted">${publishedArchive ? 'Matched to this event by recording time. Drive playback may require access.' : 'From the working video index.'}</p>`;
-}
-
-function playClip() {
-  const e = events[state.event];
-  const video = e.videos[state.clip];
-  const player = document.querySelector('.video-player');
-  const local = publishedArchive ? null : localClips[state.event + '/' + state.clip];
-  if (video.src) {
-    player.innerHTML = `<video controls playsinline autoplay src="${esc(video.src)}" aria-label="Event video"></video>`;
-    player.firstElementChild.focus();
-    return;
-  }
-  if (local) {
-    player.innerHTML = `<video controls playsinline autoplay src="${window.embeddedMedia?.[local] ?? `media/${local}`}" aria-label="Event video preview"></video>`;
-    player.firstElementChild.focus();
-    return;
-  }
-  player.innerHTML = `<iframe src="https://drive.google.com/file/d/${esc(video.id)}/preview" title="Video clip ${state.clip + 1} on Google Drive" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-  player.firstElementChild.focus();
-}
-
 function detail(id) {
   const e = events[id];
   const projectsLine = e.projects.map(pid => esc(projects[pid].title)).join(' · ');
@@ -203,8 +167,6 @@ function detail(id) {
     <p class="detail-meta">${dateLong.format(new Date(e.date))}${moment}${e.location ? ' · ' + esc(e.location) : ''}</p><p class="detail-meta">${projectsLine}</p></header>
     <section><h4>People</h4>${credits}${programme}${names}<p class="muted">${calendarNote}</p></section>
     <section><h4>Descriptions</h4>${notes}</section>
-    <section><h4>Video Documentation${e.videos.length ? ' · ' + e.videos.length : ''}</h4>
-    <div id="clip-content">${e.videos.length ? clipMarkup(e, id) : '<p class="muted">No video is linked to this record.</p>'}</div></section>
     </article>`;
 }
 
@@ -221,7 +183,6 @@ function render() {
 function openEvent(id) {
   if (!state.event) state.scroll = scrollPanel.scrollTop;
   state.event = id;
-  state.clip = 0;
   render();
   scrollPanel.scrollTop = 0;
   content.querySelector('h3').focus({ preventScroll: true });
@@ -268,20 +229,10 @@ document.querySelector('#artist-connections')?.addEventListener('click', enterAr
 content.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
-  const { theme, project, artist, event: id, clip, back, play, relation } = button.dataset;
+  const { theme, project, artist, event: id, back, relation } = button.dataset;
   if(relation){focusStrips([relation], (artists.find(a=>a.id===state.artist)?.name||'Project')+' · '+projects[relation].title);return;}
   if (id) {
     openEvent(id);
-    return;
-  }
-  if (play !== undefined) {
-    playClip();
-    return;
-  }
-  if (clip !== undefined) {
-    state.clip = Number(clip);
-    document.querySelector('#clip-content').innerHTML = clipMarkup(events[state.event], state.event);
-    content.querySelector(`[data-clip="${clip}"]`).focus({ preventScroll: true });
     return;
   }
   if (back !== undefined) {
