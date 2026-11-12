@@ -85,6 +85,18 @@ const canvas=world.c;let down=null;
 function hit(x,y){const r=canvas.getBoundingClientRect(),wx=world.x+(x-r.left-world.W/2)/world.z,wy=world.y+(y-r.top-world.H/2)/world.z;
  for(const [pid,m] of Object.entries(world.overviewMasks||{})){if(!catalog[pid])continue;const px=Math.floor(wx-m.x),py=Math.floor(wy-m.y);if(px>=0&&py>=0&&px<m.canvas.width&&py<m.canvas.height&&m.canvas.getContext('2d').getImageData(px,py,1,1).data[3]>0)return pid}return null}
 canvas.addEventListener('pointerdown',e=>{if(!e.isPrimary){down=null;return}down={x:e.clientX,y:e.clientY,moved:false}});canvas.addEventListener('pointermove',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>6)down.moved=true;if(!e.buttons)canvas.style.cursor=hit(e.clientX,e.clientY)?'pointer':'grab'});canvas.addEventListener('pointerup',e=>{const pid=hit(e.clientX,e.clientY);if(down&&!down.moved&&pid)open(pid);down=null});canvas.addEventListener('pointercancel',()=>down=null);
+const hoverLabel=document.createElement('div');hoverLabel.className='building-hover-label';hoverLabel.hidden=true;hoverLabel.setAttribute('role','tooltip');world.host.append(hoverLabel);
+world.clearHover=()=>{hoverLabel.hidden=true;if(world.hovered){world.hovered=null;world.draw()}};
+canvas.addEventListener('pointermove',e=>{
+ if(e.buttons||e.pointerType==='touch'){world.clearHover();return;}
+ const pid=hit(e.clientX,e.clientY);if(!pid){world.clearHover();return;}
+ if(world.hovered!==pid){world.hovered=pid;hoverLabel.textContent=pid+' / '+catalog[pid].title;world.draw();}
+ hoverLabel.hidden=false;const r=world.host.getBoundingClientRect();
+ const x=e.clientX-r.left,y=e.clientY-r.top,w=hoverLabel.offsetWidth,h=hoverLabel.offsetHeight;
+ hoverLabel.style.left=Math.max(8,Math.min(x+16,r.width-w-8))+'px';
+ hoverLabel.style.top=Math.max(8,y+h+24>r.height?y-h-12:y+20)+'px';
+});
+canvas.addEventListener('pointerleave',()=>world.clearHover());canvas.addEventListener('pointerdown',()=>world.clearHover());canvas.addEventListener('wheel',()=>world.clearHover(),{passive:true});
 const hint=document.createElement('div');hint.className='p05-canvas-hint';hint.style.cssText='pointer-events:none;font:10px ui-monospace,monospace;color:#405045;background:#ffffffdd;padding:6px 10px';hint.textContent='Click a building / inspect process';world.host.append(hint);
 const contentRoot=document.querySelector('#archive-content');
 function addEntry(){let pid=state.project;if(!catalog[pid]&&state.event)pid=Object.keys(catalog).find(k=>catalog[k].events.includes(state.event));if(!catalog[pid])return;

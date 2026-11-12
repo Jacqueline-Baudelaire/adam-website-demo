@@ -14,6 +14,9 @@ const status = document.querySelector('#art-status');
 const tabs = [...document.querySelectorAll('[data-tab]')];
 const artBody = document.querySelector('#art-body');
 const world = new ArchitectureWorld(artBody);
+const overviewButton=document.createElement('button');
+overviewButton.type='button';overviewButton.id='reset';overviewButton.textContent='Overview';overviewButton.setAttribute('aria-label','Return to overview');overviewButton.title='Return to all projects';
+artBody.querySelector('.world-controls').append(overviewButton);
 const state = { tab: 'themes', theme: null, project: null, artist: null, event: null, clip: 0, scroll: 0 };
 const dateShort = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const dateLong = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
@@ -259,7 +262,7 @@ search.addEventListener('input', () => {
   render();
   scrollPanel.scrollTop = 0;
 });
-document.querySelector('#reset')?.addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;search.value='';render();scrollPanel.scrollTop=0;focusStrips([], 'All 13 projects');});
+document.querySelector('#reset')?.addEventListener('click', () => {state.event=null;state.project=null;state.artist=null;state.theme=null;state.tab='themes';search.value='';tabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab==='themes')));world.clearHover?.();render();scrollPanel.scrollTop=0;focusStrips([], 'All themes');});
 document.querySelector('#artist-connections')?.addEventListener('click', enterArtists);
 
 content.addEventListener('click', event => {
