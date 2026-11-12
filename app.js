@@ -39,12 +39,12 @@ function esc(value) {
 
 function focusStrips(ids, label) {
   status.textContent = label;
-  world.focus(ids, state.tab === 'artists' ? state.artist : null);
+  world.focus(ids);
 }
 function showNodes(ids, label, keepView = false) {
   const groups = Object.keys(projects).filter(pid => ids.some(id => projects[pid].nodes[id]));
   status.textContent = label + (groups.length ? ' · Project location' : ' · No mapped building');
-  if (!keepView) world.focus(groups, state.tab === 'artists' ? state.artist : null);
+  if (!keepView) world.focus(groups);
 }
 
 function disclosure(type, id, index, title, count, expanded) {
@@ -79,7 +79,7 @@ function jennyRoute() {
     ['P05','Homecoming archaeology','Discussion of invented artifacts for Homecoming and how their stories would be presented to visitors.','A155'],
     ['P14','Campus architecture','Desk critiques on material, form, architectural concepts and the stories buildings communicate.','N001']
   ];
-  return '<section class="relation-guide"><h3>One visitor, three projects</h3><p>The bridges in this drawing connect projects associated with Jenny’s discussions and critiques. They show a relationship, not a chronological route.</p>'+
+  return '<section class="relation-guide"><h3>One visitor, three projects</h3><p>The highlighted buildings identify projects associated with Jenny’s discussions and critiques. Shared highlighting indicates a relationship, not participation in every event.</p>'+
     relations.map(([pid,title,text,eid])=>'<div class="relation-card"><button type="button" data-relation="'+pid+'"><small>'+pid+'</small><strong>'+title+'</strong></button><p>'+text+'</p><button type="button" class="source-record" data-event="'+eid+'">Read '+(eid==='A155'?'22':'24')+' September notes →</button></div>').join('')+
     '<p class="muted">Based on meeting and critique notes; this does not imply participation in every later event.</p></section>';
 }
