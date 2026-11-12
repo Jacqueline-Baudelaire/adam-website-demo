@@ -44,11 +44,11 @@ g.putImageData(pixels,0,0);this.masks[ids[i]]={canvas:out,x:l,y:t};
 }
 relayout(){
 const layout=ArchitectureWorld.layout;this.sceneW=layout.W;this.sceneH=layout.H;
-const scene=document.createElement('canvas');scene.width=layout.W;scene.height=layout.H;const g=scene.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,scene.width,scene.height);
+const scene=document.createElement('canvas');scene.width=layout.W;scene.height=layout.H;const g=scene.getContext('2d');
 for(const a of layout.placed){const m=this.overviewMasks[a.id],c=document.createElement('canvas');c.width=Math.round(a.w);c.height=Math.round(a.h);c.getContext('2d').drawImage(m.canvas,0,0,c.width,c.height);m.canvas=c;m.x=a.x;m.y=a.y;ArchitectureWorld.boxes[a.id]=[a.x,a.y,c.width,c.height];g.drawImage(c,a.x,a.y);}
 this.overview=scene;
 }
-draw(){if(!this.ready)return;const g=this.g,z=this.z,W=this.W,H=this.H;g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);g.clearRect(0,0,W,H);g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-this.x,-this.y);g.fillStyle='#fff';g.fillRect(0,0,this.sceneW||1536,this.sceneH||1024);
+draw(){if(!this.ready)return;const g=this.g,z=this.z,W=this.W,H=this.H;g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);g.clearRect(0,0,W,H);g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-this.x,-this.y);
 g.globalAlpha=this.selected.length?.2:1;g.drawImage(this.overview,0,0);g.globalAlpha=1;
 for(const id of this.selected){const m=this.overviewMasks[id];if(m)g.drawImage(m.canvas,m.x,m.y)}
 g.restore();

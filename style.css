@@ -185,9 +185,18 @@ body.page-fullscreen .archive,body.page-fullscreen .art,body.page-fullscreen .ar
 body.page-fullscreen .archive{border-right:0}
 body.page-fullscreen .art-body{border:0;margin:4px 8px 4px 0}
 @media(min-width:721px){
-body.page-fullscreen .workspace:not(.index-collapsed){grid-template-columns:clamp(240px,20vw,310px) minmax(0,1fr)}
+body.page-fullscreen .workspace:not(.index-collapsed){grid-template-columns:minmax(240px,22.3%) minmax(0,1fr)}
 body.page-fullscreen .archive-header{padding-left:20px;padding-right:18px}
 body.page-fullscreen .archive-scroll{padding-left:20px;padding-right:18px}
 body.page-fullscreen .tabs{gap:18px;font-size:13px}
 body.page-fullscreen .archive-footer{padding-left:20px;letter-spacing:.06em;font-size:9px}
 }
+
+/* Transparent artwork over the existing warm paper, in every viewing mode. */
+.archive,.art,.art-body,.archive-footer,.art-footer,
+body.page-fullscreen .archive,body.page-fullscreen .art,body.page-fullscreen .art-body,body.page-fullscreen .archive-footer,body.page-fullscreen .art-footer,
+body.art-fullscreen .art,body.art-fullscreen .art-body{background:var(--paper)}
+.archive{border-right:0}
+.art-body{border:0}
+.p05-canvas-hint{background:transparent!important}
+@media(min-width:721px){.workspace:not(.index-collapsed){grid-template-columns:minmax(240px,22.3%) minmax(0,1fr)}.archive-header{padding-left:20px;padding-right:18px}.archive-scroll{padding-left:20px;padding-right:18px}.tabs{gap:18px;font-size:13px}}
