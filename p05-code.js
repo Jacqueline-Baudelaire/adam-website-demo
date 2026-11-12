@@ -99,7 +99,7 @@ if(section===7){const a=data.assets[e.atlas];media='<div class="lab-two">'+fig(c
 if(section===8){
  const pages={P01:1,P02:6,P03:7,P04:10,P05:14,P06:17,P08:19,P09:22,P10:27,P11:29,P12:32,P13:35,P14:37};
  const revision={P03:'Revised single-floor study: the detached room joins the group.',P08:'Earlier study: the upper-left elevator was removed in the final artwork.',P14:'Earlier study: the final artwork uses a more compact arrangement.'};
- media=`<img class="lab-wide fold-pair" src="assets/fold-study-v1/${activePid}.svg" alt="${activePid}: perspective and parallel projection of the same floor study">`;
+ media=`<svg class="lab-wide fold-pair" viewBox="0 0 565 700" role="img" aria-label="${activePid}: perspective above parallel projection"><svg x="0" y="0" width="565" height="350" viewBox="0 0 565 350" overflow="hidden"><image href="assets/fold-study-v1/${activePid}.svg" width="1130" height="350"/></svg><svg x="0" y="350" width="565" height="350" viewBox="565 0 565 350" overflow="hidden"><image href="assets/fold-study-v1/${activePid}.svg" width="1130" height="350"/></svg></svg>`;
  snippets[8]+=`\n\n// Perspective + parallel: 7×7 study, page ${pages[activePid]}.\n// ${revision[activePid]||'Paired views of the selected layout study.'}\n// Study geometry is distinct from the final artistic surfaces.`;
 }
 const clean=document.createElement('div');clean.innerHTML=media;

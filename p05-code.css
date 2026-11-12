@@ -13,8 +13,8 @@
 #p05-lab,#p05-image-view{font-family:"Adam Code",ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:400;font-variant-ligatures:contextual;font-feature-settings:"calt" 1,"liga" 1;font-synthesis:none}#p05-lab button,#p05-lab select,#p05-lab input,#p05-lab summary,#p05-lab .lab-equation,#p05-lab .lab-code,#p05-image-view>button{font-family:inherit}#p05-lab .lab-code{line-height:2}#p05-lab .lab-file,#p05-lab .tab-active{letter-spacing:0}
 
 /* P05 image-led process: persistent code beside a vertical image sequence. */
-#p05-lab.image-led{width:min(760px,calc(100vw - 24px));height:min(620px,calc(100dvh - 40px))}
-#p05-lab.image-led.expanded{width:min(1160px,calc(100vw - 40px));height:min(850px,calc(100dvh - 40px))}
+#p05-lab.image-led{width:min(840px,calc(100vw - 24px));height:min(680px,calc(100dvh - 40px))}
+#p05-lab.image-led.expanded{width:min(1240px,calc(100vw - 40px));height:min(900px,calc(100dvh - 40px))}
 #p05-lab .image-code-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);flex:1;min-height:0;overflow:hidden}
 #p05-lab.image-led .lab-document{overflow:auto;min-width:0;padding:12px 14px;border-right:1px solid var(--line)}
 #p05-lab.image-led .process-section{border:0;padding:0}#p05-lab.image-led .process-section[hidden]{display:none}
@@ -37,3 +37,5 @@
 @media(max-width:540px){#p05-lab.image-led .image-code-split{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#p05-lab.image-led .lab-document{padding:10px 7px}#p05-lab.image-led .image-step-rail{padding:10px 7px}#p05-lab.image-led .lab-code{font-size:9px;padding-left:23px;padding-right:0}#p05-lab.image-led .process-body>.lab-equation{font-size:12px}#p05-lab.image-led .image-step{padding:7px}#p05-lab.image-led .image-step .lab-building{height:140px!important}#p05-lab.image-led .process-section summary small{display:none}}
 #p05-lab.image-led .code-line:before{white-space:nowrap;width:22px;text-align:right;right:calc(100% + 7px)}
 @media(max-width:540px){#p05-lab.image-led.expanded .status-center{display:none}#p05-lab.image-led .lab-status{gap:7px}#p05-lab.image-led .lab-shell{min-width:0}#p05-lab.image-led .lab-tabs button{font-size:9px;padding:0 6px}}
+
+.fold-pair{display:block;width:100%;height:auto}
