@@ -179,3 +179,15 @@ body.art-fullscreen .world-controls{top:max(16px,env(safe-area-inset-top));right
 .mast-meta .world-controls button{min-height:32px}
 .art-body{margin:6px 8px 6px}
 @media(max-width:720px){.masthead{height:154px;padding:10px 16px}.mast-meta{width:100%;gap:6px;align-items:flex-end}.workspace{height:calc(100dvh - 154px)}.mast-meta .world-controls{gap:4px}.mast-meta .world-controls button{padding:6px 9px;min-height:28px}.mast-meta .world-controls .world-fullscreen{padding:0 7px}.art-body{margin:4px 6px}}
+
+/* One exhibition surface in whole-page fullscreen. */
+body.page-fullscreen .archive,body.page-fullscreen .art,body.page-fullscreen .art-body,body.page-fullscreen .archive-footer,body.page-fullscreen .art-footer{background:#fff}
+body.page-fullscreen .archive{border-right:0}
+body.page-fullscreen .art-body{border:0;margin:4px 8px 4px 0}
+@media(min-width:721px){
+body.page-fullscreen .workspace:not(.index-collapsed){grid-template-columns:clamp(240px,20vw,310px) minmax(0,1fr)}
+body.page-fullscreen .archive-header{padding-left:20px;padding-right:18px}
+body.page-fullscreen .archive-scroll{padding-left:20px;padding-right:18px}
+body.page-fullscreen .tabs{gap:18px;font-size:13px}
+body.page-fullscreen .archive-footer{padding-left:20px;letter-spacing:.06em;font-size:9px}
+}

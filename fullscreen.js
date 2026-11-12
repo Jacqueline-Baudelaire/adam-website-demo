@@ -18,6 +18,8 @@
   }
   function sync(value){
     mode=value;document.body.classList.toggle('art-fullscreen',value==='art');
+    document.body.classList.toggle('page-fullscreen',value==='page');
+    if(value==='page')requestAnimationFrame(()=>requestAnimationFrame(()=>{if(mode==='page'&&world.ready)world.focus(world.selected)}));
     (value==='art'?world.host:document.querySelector('.mast-meta')).append(controls);
     for(const [key,button] of Object.entries(buttons)){
       const label=key==='page'?'Page full screen':'Art full screen';
@@ -33,7 +35,7 @@
     native=false;sync(null);button.focus({preventScroll:true});
   }
   document.addEventListener('fullscreenchange',()=>{
-    if(document.fullscreenElement){native=true;}
+    if(document.fullscreenElement){native=true;if(mode==='page')requestAnimationFrame(()=>world.focus(world.selected));}
     else if(native){native=false;sync(null);}
   });
   document.addEventListener('keydown',e=>{
