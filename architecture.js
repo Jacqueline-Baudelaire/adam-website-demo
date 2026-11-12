@@ -1,18 +1,19 @@
 class ArchitectureWorld {
 constructor(host){
 this.host=host;host.innerHTML='<canvas class="architecture-canvas" tabindex="0" aria-label="Archive architecture. Drag to pan, scroll to zoom, arrow keys to move, plus and minus to zoom."></canvas><div class="world-controls"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
-const c=this.c=host.querySelector('canvas'),g=this.g=c.getContext('2d');this.W=1;this.H=1;this.x=768;this.y=512;this.z=1;this.selected=[];this.showArtistBridges=false;this.im=new Image();this.im.onload=()=>{this.buildMasks();this.ready=true;this.focus(this.selected,this.showArtistBridges?'V03':null)};this.im.onerror=()=>{document.querySelector('#art-status').textContent='Artwork could not load. Please reload.'};this.im.src=window.jennyImageParts.join('');
+const c=this.c=host.querySelector('canvas'),g=this.g=c.getContext('2d');this.W=1;this.H=1;this.x=768;this.y=512;this.z=1;this.selected=[];this.showArtistBridges=false;this.im=new Image();this.im.onload=()=>{this.buildMasks();this.bridgeMasks=this.masks;this.repair=new Image();this.repair.onload=()=>{this.overview=document.createElement('canvas');this.overview.width=1536;this.overview.height=1024;const ctx=this.overview.getContext('2d');ctx.drawImage(this.im,0,0,1536,1024);for(const r of ArchitectureWorld.repairRegions)ctx.drawImage(this.repair,...r);this.buildMasks(this.overview);this.overviewMasks=this.masks;this.ready=true;this.focus(this.selected,this.showArtistBridges?'V03':null)};this.repair.onerror=this.im.onerror;this.repair.src=window.bridgeRepairParts.join('')};this.im.onerror=()=>{document.querySelector('#art-status').textContent='Artwork could not load. Please reload.'};this.im.src=window.jennyImageParts.join('');
 new ResizeObserver(()=>{this.W=host.clientWidth;this.H=host.clientHeight;c.width=this.W*devicePixelRatio;c.height=this.H*devicePixelRatio;this.draw()}).observe(host);
 const pts=new Map();let prev=null;const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};const gesture=()=>{let a=[...pts.values()];return a.length>1?{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}:a.length?{...a[0],d:0}:null};c.onpointerdown=e=>{cancelAnimationFrame(this.frame);c.setPointerCapture(e.pointerId);pts.set(e.pointerId,pos(e));prev=gesture()};c.onpointermove=e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,pos(e));let a=gesture();this.x-=(a.x-prev.x)/this.z;this.y-=(a.y-prev.y)/this.z;if(a.d&&prev.d)this.zoom(a.d/prev.d,a.x,a.y);else this.draw();prev=a};c.onpointerup=c.onpointercancel=e=>{pts.delete(e.pointerId);prev=gesture()};c.addEventListener('wheel',e=>{e.preventDefault();let p=pos(e);this.zoom(Math.exp(-e.deltaY*.0015),p.x,p.y)},{passive:false});host.querySelectorAll('.world-controls button').forEach((b,i)=>b.onclick=()=>this.zoom(i?1/1.3:1.3));c.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key)){e.preventDefault();cancelAnimationFrame(this.frame);if(e.key==='+'||e.key==='=')this.zoom(1.2);else if(e.key==='-')this.zoom(1/1.2);else{this.x+=({ArrowLeft:-80,ArrowRight:80}[e.key]||0)/this.z;this.y+=({ArrowUp:-80,ArrowDown:80}[e.key]||0)/this.z;this.draw()}}};
 }
 zoom(f,px=this.W/2,py=this.H/2){cancelAnimationFrame(this.frame);let nz=Math.max(.08,Math.min(4,this.z*f));this.x+=(px-this.W/2)*(1/this.z-1/nz);this.y+=(py-this.H/2)*(1/this.z-1/nz);this.z=nz;this.draw()}
 focus(ids,artistId=null){this.showArtistBridges=artistId==='V03';this.selected=ids.filter(id=>ArchitectureWorld.boxes[id]);const boxes=this.selected.map(id=>ArchitectureWorld.boxes[id]);let x=768,y=512,z=Math.min(this.W/1580,this.H/1070);if(boxes.length){let l=Math.min(...boxes.map(b=>b[0])),t=Math.min(...boxes.map(b=>b[1])),r=Math.max(...boxes.map(b=>b[0]+b[2])),b=Math.max(...boxes.map(b=>b[1]+b[3]));x=(l+r)/2;y=(t+b)/2;z=Math.min(this.W/(r-l+160),this.H/(b-t+160),1.8)}cancelAnimationFrame(this.frame);let from=[this.x,this.y,this.z],start=performance.now();const run=now=>{let t=matchMedia('(prefers-reduced-motion: reduce)').matches?1:Math.min(1,(now-start)/520),e=1-(1-t)**3;[this.x,this.y,this.z]=from.map((v,i)=>v+([x,y,z][i]-v)*e);this.draw();if(t<1)this.frame=requestAnimationFrame(run)};this.frame=requestAnimationFrame(run)}
 
-buildMasks(){
+buildMasks(source=this.im){
 const W=1536,H=1024,N=W*H,c=document.createElement('canvas');c.width=W;c.height=H;
-const ctx=c.getContext('2d');ctx.drawImage(this.im,0,0,W,H);const data=ctx.getImageData(0,0,W,H).data;
+const ctx=c.getContext('2d');ctx.drawImage(source,0,0,W,H);const data=ctx.getImageData(0,0,W,H).data;
 const ids=Object.keys(ArchitectureWorld.boxes),labels=new Int8Array(N).fill(-1),seen=new Uint8Array(N),queue=new Int32Array(N);
 const prototypes=[
+['P02',450,65,710,388],['P05',525,307,991,659],['P14',690,674,1166,1014],
 ['P01',30,24,449,464],['P10',1122,28,1515,438],['P12',16,592,343,1000],['P13',1234,468,1519,883],
 ['P06',800,22,1092,330],['P09',404,752,678,1002],['P11',1061,266,1273,535],['P03',30,465,521,604],
 ['P08',298,618,617,875],['P11',945,346,1107,548],['P04',1133,579,1272,802],['P04',1044,552,1144,698],['P04',1041,688,1157,745]
@@ -42,27 +43,12 @@ g.putImageData(pixels,0,0);this.masks[ids[i]]={canvas:out,x:l,y:t};
 }
 }
 draw(){if(!this.ready)return;const g=this.g,z=this.z,W=this.W,H=this.H;g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);g.clearRect(0,0,W,H);g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-this.x,-this.y);g.fillStyle='#fff';g.fillRect(0,0,1536,1024);
-g.globalAlpha=this.selected.length?.2:1;g.drawImage(this.im,0,0,1536,1024);g.globalAlpha=1;
-for(const id of this.selected){const m=this.masks[id];if(m)g.drawImage(m.canvas,m.x,m.y)}
-// The two cross-project bridges are a contextual artist layer, not part of the overview.
-if(!this.showArtistBridges){
-g.fillStyle='#fff';
-for(const d of ArchitectureWorld.artistBridgeGaps)g.fill(new Path2D(d));
-// Close the exposed floor edges in the original outline and side-face colours.
-g.lineWidth=2;g.lineJoin='round';g.strokeStyle='#202237';
-for(const edge of ArchitectureWorld.bridgeEndEdges){g.globalAlpha=this.selected.length&&!this.selected.includes(edge.project)?.2:1;g.fillStyle=edge.color;const path=new Path2D(edge.path);g.fill(path);g.stroke(path)}
-}
+g.globalAlpha=this.selected.length?.2:1;g.drawImage(this.showArtistBridges?this.im:this.overview,0,0,1536,1024);g.globalAlpha=1;
+for(const id of this.selected){const m=(this.showArtistBridges?this.bridgeMasks:this.overviewMasks)[id];if(m)g.drawImage(m.canvas,m.x,m.y)}
 g.restore();
 }
 }
 ArchitectureWorld.boxes={P01:[20,20,430,450],P02:[445,65,275,330],P03:[25,460,500,145],P04:[1040,550,240,250],P05:[520,310,480,350],P06:[795,25,300,305],P08:[300,615,325,255],P09:[425,750,260,250],P10:[1120,20,405,420],P11:[940,265,340,285],P12:[15,590,330,415],P13:[1250,470,275,415],P14:[685,675,485,340]};
 
 
-ArchitectureWorld.artistBridgeGaps=[
-'M 550 384 L 595 381 L 643 411 L 616 433 L 595 447 L 591 432 L 552 409 Z',
-'M 689 648 L 731 648 L 731 675 L 762 695 L 739 729 L 721 720 L 689 698 Z'
-];
-ArchitectureWorld.bridgeEndEdges=[
-{project:'P02',color:'#319d83',path:'M 550 379 Q 570 382 595 377 L 595 385 Q 570 390 550 386 Z'},
-{project:'P05',color:'#319d83',path:'M 690 641 Q 709 646 729 641 L 729 649 Q 709 654 690 649 Z'}
-];
+ArchitectureWorld.repairRegions=[[0,0,175,95,530,365,175,95],[175,0,170,160,675,615,170,160]];
