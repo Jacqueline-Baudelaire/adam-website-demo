@@ -75,6 +75,89 @@ function p05Notation(e,snippets){
 }
 const p05Equations=['new_object + staged_discovery ≈ old_artifact','record ≠ depiction','motif − detail + reconfiguration','affinity ≠ authenticity','29 days ↔ 0 days / equal span','difference → aperture','ordinary_interior ⊗ relation → possible_past','shared_surface + distinct_records','14 records → 7 × 7 / selected floors','archive + invention → B₀₅'];
 
+// Shared measured fields retain their formulas; each project supplies its own spatial reading.
+function projectNotation(e,snippets){
+ const p=window.projectNotations[activePid], record=window.projectNotationRecords[activePid][e.event_id];
+ const n=data.events.length, next=data.events[e.index+1], days=data.gaps[e.index];
+ const gaps=data.gaps.filter(Number.isFinite), longest=Math.max(0,...gaps), sameDay=gaps.filter(d=>d===0).length;
+ const operation=compositionMath[e.composition_operation]||'Aᵢ ≈ retain(contour + mass)';
+ snippets[0]=`project ${activePid} {
+    |E| := ${n}
+    field := ${p.field}
+    ${p.claim}
+}
+
+// Project-specific artistic notation.
+// Equations describe readings, not literal simulations.`;
+ snippets[1]=`record := ${e.event_id} / ${e.event_date}
+input.role := ${record.input}
+membership := ${record.membership}
+
+${p.collect}
+
+record_identity ≠ depicted_scene
+// Membership does not establish attendance.`;
+ snippets[2]=`project.vocabulary := {
+    ${p.motifs}
+}
+
+${p.extract}
+
+${e.event_id}.operation := ${e.composition_operation}
+${operation}
+
+// Vocabulary spans this project; not every motif
+// occurs in every image. The operation is a prompt.`;
+ snippets[3]+=`
+
+${activePid}.comparison_set := ${n-1} other records
+${p.relate}`;
+ snippets[4]+=`
+
+${e.event_id} → ${next?.event_id??'END'}
+Δt := ${days===undefined?'∅ / final record':days+' days'}
+${activePid}.longest_gap := ${longest} days
+${activePid}.same_day_intervals := ${sameDay}
+
+${p.time}`;
+ snippets[5]+=`
+
+${p.aperture}
+// Interpretation follows the computed anchor width.`;
+ snippets[6]=`Sᵢ ≈ Φ_${activePid}(Aᵢ, Rᵢ)
+
+${p.translate}
+
+operationᵢ := ${e.composition_operation}
+black → cut / passage
+red → limit / contraction
+
+// Symbolic readings of the processed imagery.
+// The geometry was composed, not solved from Φ.`;
+ snippets[7]=`Sᵢ ⊕ Sⱼ ≠ Sᵢ + Sⱼ
+
+${p.join}
+
+affinity ↑ ⇒ neck.width ↑  // approximate
+retain(event_identity)
+// This local join is distinct from vertical circulation.`;
+ snippets[8]=`${n} records → ${n} cells
+site := 7 × 7
+
+${p.fold}
+
+one_event ↦ one_cell
+connect(occupied_cells)
+avoid(occlusion)
+// Spatial arrangement is chosen; not a similarity map.`;
+ snippets[9]=`${p.output}
+
+palette := ${data.meta.palette}
+select(event) → locate(project) → revisit(translation)
+// Colour and final geometry remain unchanged.`;
+}
+function activeEquations(){return activePid==='P05'?p05Equations:window.projectNotations[activePid].eq}
+
 function block(){const e=data.events[eventIndex],i=e.index,d=data.gaps[i],mu=e.mean_similarity.toFixed(3),ap=e.aperture.toFixed(2);const source=e.source_event_id===e.event_id?'own_frame':'borrow';
 const snippets=[`project ${activePid} {\n    |E|     := ${data.events.length}\n    site    := 7 × 7\n    levels  := adopted_layout\n    palette := ${data.meta.palette}\n    ${data.meta.concept}\n}\n\n// A place does not exhaust the record.`,
 `event ${e.event_id} {\n    date        := ${e.event_date}\n    composition := Aᵢ\n    identity    := retain(event)\n}\n\n// Begin with an interpreted image.`,
@@ -86,7 +169,7 @@ const snippets=[`project ${activePid} {\n    |E|     := ${data.events.length}\n 
 `Sᵢ ⊕ Sⱼ ≠ Sᵢ + Sⱼ\n\njoin(Sᵢ, Sⱼ) {\n    reshape(both)\n    continue(surfaces)\n    retain(short_neck)\n    open(passage)\n}\n\naffinity ↑ ⇒ neck.width ↑   // approximate\n// Neck width is distinct from the red aperture.`,
 `sequence({Sᵢ}) → redistribute → floors\n\none event ↦ one cell\nempty_cell ≠ missing_event\nvoid := room_for_possibility\n\npreserve(event.identity)\navoid(occlusion)\nalign(floor_levels)\nconnect(occupied_cells)\n\n// Layout is selected, not mathematically inevitable.`,
 `B ← colour(assemble({Sᵢ}, joints, circulation), ${data.meta.palette})\n\nselect(person) → illuminate(associated_projects)\nselect(event)  → locate(project) → unfold(record)\n\npreserve identity\nallow ambiguity\n\nreturn B`];
-if(activePid==='P05')p05Notation(e,snippets);
+if(activePid==='P05')p05Notation(e,snippets);else projectNotation(e,snippets);
 let media='';
 if(section===0||section===9)media=`<div class="lab-plot"><img class="lab-building" style="height:260px" src="${(world.overviewMasks[activePid].hi?.src||world.overviewMasks[activePid].canvas.toDataURL())}" alt="Current ${activePid} building, intact and without cross-project bridges"></div>`;
 if(section===1)media=fig(cell(0),'A / INTERPRETED COMPOSITION');
@@ -134,7 +217,7 @@ function imageLedLayout(){
 }
 function render(){
  const e=data.events[eventIndex],current=section;
- const body=sections.map((name,i)=>{section=i;const view=block(),kind=i===5?'computed + interpreted':[3,4].includes(i)?'computed':'interpreted';return `<details id="process-${i}" class="process-section" ${folds.has(i)?'':'open'}><summary><span class="fold-arrow">▾</span><span>${String(i).padStart(2,'0')} ${files[i].slice(3)} {</span><small>${kind}</small></summary><div class="process-body"><div class="lab-equation">${activePid==='P05'?p05Equations[i]:equations[i]}</div>${view.source}<div class="merged-art">${view.media}</div><div class="code-end">}</div></div></details>`}).join('');section=current;
+ const body=sections.map((name,i)=>{section=i;const view=block(),kind=i===5?'computed + interpreted':[3,4].includes(i)?'computed':'interpreted';return `<details id="process-${i}" class="process-section" ${folds.has(i)?'':'open'}><summary><span class="fold-arrow">▾</span><span>${String(i).padStart(2,'0')} ${files[i].slice(3)} {</span><small>${kind}</small></summary><div class="process-body"><div class="lab-equation">${esc(activeEquations()[i])}</div>${view.source}<div class="merged-art">${view.media}</div><div class="code-end">}</div></div></details>`}).join('');section=current;
  dlg.innerHTML=`<header class="lab-top"><div class="lab-file">▣ ${activePid}.activity <span class="dim">/ ADAM</span></div><div class="window-actions"><button data-expand aria-label="Toggle enlarged window" aria-expanded="${expanded}">[ ${expanded?'− shrink':'↗ expand'} ]</button><button class="lab-close" data-close aria-label="Close process and return to architecture">[ × ]</button></div></header><div class="lab-shell ${outlineHidden?'outline-hidden':''}"><nav id="lab-outline" class="lab-nav" aria-label="Process outline" ${outlineHidden?'hidden':''}><div class="tree-heading">OUTLINE</div><div class="tree-root">▾ ${activePid}.activity</div>${files.map((f,i)=>`<button data-section="${i}" class="${section===i?'active':''}"><span>${i===9?'└':'├'}</span>${f}</button>`).join('')}<div class="tree-legend">Φ translate<br>⊗ interact<br>⊕ reshape together<br>≈ interpretation</div></nav><main class="lab-main"><div class="lab-tabs"><span class="tab-active">⌘ ${activePid}.activity</span><button data-outline aria-controls="lab-outline" aria-expanded="${!outlineHidden}">[ ${outlineHidden?'show':'hide'} outline ]</button></div><div class="lab-toolbar"><label for="lab-event">record :</label><select id="lab-event">${data.events.map((x,i)=>`<option value="${i}" ${i===eventIndex?'selected':''}>${x.event_id} / ${esc(x.event_title)}</option>`).join('')}</select></div><div class="lab-document" tabindex="0" aria-label="Continuous process code"><div class="document-heading">// ${activePid} / ${esc(data.meta.title)}<br><span class="dim">// ${data.events.length} records → one possible building</span></div>${body}<div class="document-end">return building;<br><span class="dim">// end of notation</span></div></div></main></div><footer class="lab-status"><span class="status-mode">INSPECT</span><span>${e.event_id}</span><span class="status-center">UTF-8 · artistic notation</span><span id="lab-position">${String(section+1).padStart(2,'0')} / 10</span><button data-next>[ next → ]</button></footer>`;
  drawWave(data.gaps[eventIndex]??0);
  dlg.querySelectorAll('.process-section').forEach(d=>d.addEventListener('toggle',()=>{const i=+d.id.split('-')[1];if(d.open)folds.delete(i);else folds.add(i)}));
