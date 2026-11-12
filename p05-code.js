@@ -22,7 +22,7 @@ async function load(pid){
  })();pending.set(pid,task);try{return await task}finally{pending.delete(pid)}
 }
 async function open(pid='P05',id){
- if(!catalog[pid])return;const token=++openToken;returnFocus=document.activeElement;activePid=pid;section=0;eventIndex=0;folds.clear();expanded=false;outlineHidden=true;dlg.classList.remove('expanded');
+ if(!catalog[pid])return;const token=++openToken;returnFocus=document.activeElement;activePid=pid;section=0;eventIndex=0;folds.clear();expanded=false;outlineHidden=true;dlg.classList.remove('expanded');dlg.classList.toggle('image-led',pid==='P05');
  dlg.setAttribute('aria-label',pid+' architectural notation');if(!dlg.open)dlg.showModal();document.body.style.overflow='hidden';
  dlg.innerHTML=`<div class="lab-top"><span class="lab-file">${pid}.activity</span><button class="lab-close" data-close>Close ×</button></div><div class="lab-loading">Loading architectural notation…</div>`;
  try{const result=await load(pid);if(token!==openToken||!dlg.open)return;data=result;
@@ -101,7 +101,33 @@ if(section===8&&!data.assets.grid)media=`<img class="lab-building" src="${(world
 const clean=document.createElement('div');clean.innerHTML=media;
 clean.querySelectorAll('.lab-note,.lab-op-list,.lab-op-explanation,.lab-range,#lab-experiment,.lab-stats,figcaption').forEach(n=>n.remove());
 return {media:clean.innerHTML,source:code(snippets[section])};}
-function jump(i){section=i;const target=dlg.querySelector(`#process-${i}`);target.open=true;folds.delete(i);target.scrollIntoView({block:'start'});dlg.querySelectorAll('[data-section]').forEach(b=>{b.classList.toggle('active',+b.dataset.section===i);if(+b.dataset.section===i)b.setAttribute('aria-current','location');else b.removeAttribute('aria-current')});dlg.querySelector('#lab-position').textContent=String(i+1).padStart(2,'0')+' / 10';}
+function jump(i){if(dlg.classList.contains('image-led'))return selectImageStep(i,true);section=i;const target=dlg.querySelector(`#process-${i}`);target.open=true;folds.delete(i);target.scrollIntoView({block:'start'});dlg.querySelectorAll('[data-section]').forEach(b=>{b.classList.toggle('active',+b.dataset.section===i);if(+b.dataset.section===i)b.setAttribute('aria-current','location');else b.removeAttribute('aria-current')});dlg.querySelector('#lab-position').textContent=String(i+1).padStart(2,'0')+' / 10';}
+function selectImageStep(i,scroll=false){
+ section=i;
+ dlg.querySelectorAll('.process-section').forEach((n,j)=>{n.hidden=j!==i;n.open=true});
+ dlg.querySelectorAll('[data-image-step]').forEach(n=>{const active=+n.dataset.imageStep===i;n.classList.toggle('active',active);n.setAttribute('aria-pressed',String(active))});
+ dlg.querySelectorAll('[data-section]').forEach(n=>n.classList.toggle('active',+n.dataset.section===i));
+ dlg.querySelector('.lab-document').scrollTop=0;
+ dlg.querySelector('#lab-position').textContent=String(i+1).padStart(2,'0')+' / 10';
+ if(scroll)dlg.querySelector(`[data-image-step="${i}"]`).scrollIntoView({block:'nearest'});
+}
+function imageLedLayout(){
+ const main=dlg.querySelector('.lab-main'),doc=dlg.querySelector('.lab-document');
+ const split=document.createElement('div');split.className='image-code-split';
+ const rail=document.createElement('div');rail.className='image-step-rail';rail.setAttribute('aria-label','Process images — select to read code');
+ const title=document.createElement('div');title.className='image-rail-heading';title.textContent='IMAGES / select → inspect code';rail.append(title);
+ doc.querySelectorAll('.process-section').forEach((part,i)=>{
+  const card=document.createElement('div');card.className='image-step';
+  card.dataset.imageStep=i;card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',`${String(i).padStart(2,'0')} ${sections[i]} — show code`);
+  const label=document.createElement('div');label.className='image-step-label';label.textContent=String(i).padStart(2,'0')+' / '+sections[i];card.append(label);
+  const media=part.querySelector('.merged-art');card.append(media);rail.append(card);
+  const view=document.createElement('button');view.className='image-step-enlarge';view.dataset.stepEnlarge=i;view.textContent='[ enlarge image ↗ ]';rail.append(view);
+ });
+ main.append(split);split.append(doc,rail);
+ doc.querySelector('.document-heading').hidden=true;doc.querySelector('.document-end').hidden=true;
+ rail.querySelectorAll('[data-zoom]').forEach(n=>{n.removeAttribute('data-zoom');n.removeAttribute('tabindex');n.removeAttribute('role')});
+ selectImageStep(section);
+}
 function render(){
  const e=data.events[eventIndex],current=section;
  const body=sections.map((name,i)=>{section=i;const view=block(),kind=i===5?'computed + interpreted':[3,4].includes(i)?'computed':'interpreted';return `<details id="process-${i}" class="process-section" ${folds.has(i)?'':'open'}><summary><span class="fold-arrow">▾</span><span>${String(i).padStart(2,'0')} ${files[i].slice(3)} {</span><small>${kind}</small></summary><div class="process-body"><div class="lab-equation">${activePid==='P05'?p05Equations[i]:equations[i]}</div>${view.source}<div class="merged-art">${view.media}</div><div class="code-end">}</div></div></details>`}).join('');section=current;
@@ -109,13 +135,14 @@ function render(){
  drawWave(data.gaps[eventIndex]??0);
  dlg.querySelectorAll('.process-section').forEach(d=>d.addEventListener('toggle',()=>{const i=+d.id.split('-')[1];if(d.open)folds.delete(i);else folds.add(i)}));
  dlg.querySelectorAll('.lab-picture,.lab-wide,.lab-building,.lab-assembly').forEach((node,i)=>{node.tabIndex=0;node.setAttribute('role','button');node.setAttribute('aria-label','Enlarge artwork');node.dataset.zoom=i;});
+ if(activePid==='P05')imageLedLayout();
 }
 const zoom=document.createElement('dialog');zoom.id='p05-image-view';zoom.setAttribute('aria-label','Enlarged artwork');document.body.append(zoom);let zoomOrigin;
 function enlarge(node){zoomOrigin=node;const copy=node.cloneNode(true);copy.removeAttribute('tabindex');copy.removeAttribute('role');copy.removeAttribute('data-zoom');copy.style.height='';copy.querySelectorAll('[id]').forEach(el=>{const old=el.id;el.id='zoom-'+old;copy.querySelectorAll('[clip-path]').forEach(im=>{if(im.getAttribute('clip-path')===`url(#${old})`)im.setAttribute('clip-path',`url(#zoom-${old})`)})});zoom.replaceChildren();const closeButton=document.createElement('button');closeButton.textContent='[ close image × ]';closeButton.onclick=()=>zoom.close();zoom.append(closeButton,copy);zoom.showModal();closeButton.focus();}
 zoom.addEventListener('close',()=>zoomOrigin?.focus());
-dlg.addEventListener('keydown',e=>{const node=e.target.closest('[data-zoom]');if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();enlarge(node)}});
+dlg.addEventListener('keydown',e=>{const step=e.target.closest('[data-image-step]');if(step&&(e.key==='Enter'||e.key===' ')){e.preventDefault();selectImageStep(+step.dataset.imageStep);return}const node=e.target.closest('[data-zoom]');if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();enlarge(node)}});
 function drawWave(d){let pts=[];for(let k=0;k<=600;k++){let u=k/600,x=160+30*Math.sin(Math.PI*u)*(Math.sin(2*Math.PI*d*u/6)+.28*Math.sin(2*Math.PI*d*u/2.7));pts.push(`${25+550*u},${115+(x-160)*2}`)}dlg.querySelector('#lab-wave').innerHTML=`<path d="M25 115 H575" stroke="#2b4030" stroke-dasharray="3 6"/><path d="M25 35 V195 M575 35 V195" stroke="#2b4030"/><polyline points="${pts.join(' ')}" fill="none" stroke="#c5ff72" stroke-width="2.2"/><circle cx="25" cy="115" r="4" fill="#c5ff72"/><circle cx="575" cy="115" r="4" fill="#c5ff72"/><text x="25" y="22" fill="#91ac96" font-size="11">${data.events[eventIndex].event_id} → ${data.events[eventIndex+1]?.event_id??'END'}</text><text x="575" y="220" text-anchor="end" fill="#91ac96" font-size="11">${d} DAYS / FIXED DISPLAY SPAN</text>`;const value=dlg.querySelector('#lab-days-value');if(value)value.textContent=d+'d';}
-dlg.addEventListener('click',e=>{const pic=e.target.closest('[data-zoom]');if(pic){enlarge(pic);return}const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-expand')){expanded=!expanded;dlg.classList.toggle('expanded',expanded);b.setAttribute('aria-expanded',String(expanded));b.textContent=expanded?'[ − shrink ]':'[ ↗ expand ]';return}if(b.hasAttribute('data-outline')){outlineHidden=!outlineHidden;dlg.querySelector('.lab-shell').classList.toggle('outline-hidden',outlineHidden);dlg.querySelector('.lab-nav').hidden=outlineHidden;b.setAttribute('aria-expanded',String(!outlineHidden));b.textContent=outlineHidden?'[ show outline ]':'[ hide outline ]';return}if(b.hasAttribute('data-close'))return close();if(b.hasAttribute('data-section')){jump(+b.dataset.section)}if(b.hasAttribute('data-next')){jump((section+1)%10)}if(b.hasAttribute('data-reset-days')){const d=data.gaps[eventIndex]??0;dlg.querySelector('#lab-days').value=d;drawWave(d);dlg.querySelector('#lab-experiment').textContent='Recorded interval · changing this slider previews the rule; it does not alter the artwork.'}if(b.hasAttribute('data-operation')){dlg.querySelectorAll('[data-operation]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));dlg.querySelector('.lab-op-explanation').textContent=['Offset: separate or displace planes to produce depth and a passage.','Fold: turn a surface into an enclosure, an overhang or an edge.','Subtract: an absence becomes an opening, a courtyard or a cut.','Overlap: fragments meet, changing the boundary and the reading of depth.'][+b.dataset.operation]}});
+dlg.addEventListener('click',e=>{const step=e.target.closest('[data-image-step]');if(step){selectImageStep(+step.dataset.imageStep);return}const zoomStep=e.target.closest('[data-step-enlarge]');if(zoomStep){enlarge(dlg.querySelector(`[data-image-step="${zoomStep.dataset.stepEnlarge}"] .merged-art`));return}const pic=e.target.closest('[data-zoom]');if(pic){enlarge(pic);return}const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-expand')){expanded=!expanded;dlg.classList.toggle('expanded',expanded);b.setAttribute('aria-expanded',String(expanded));b.textContent=expanded?'[ − shrink ]':'[ ↗ expand ]';return}if(b.hasAttribute('data-outline')){outlineHidden=!outlineHidden;dlg.querySelector('.lab-shell').classList.toggle('outline-hidden',outlineHidden);dlg.querySelector('.lab-nav').hidden=outlineHidden;b.setAttribute('aria-expanded',String(!outlineHidden));b.textContent=outlineHidden?'[ show outline ]':'[ hide outline ]';return}if(b.hasAttribute('data-close'))return close();if(b.hasAttribute('data-section')){jump(+b.dataset.section)}if(b.hasAttribute('data-next')){jump((section+1)%10)}if(b.hasAttribute('data-reset-days')){const d=data.gaps[eventIndex]??0;dlg.querySelector('#lab-days').value=d;drawWave(d);dlg.querySelector('#lab-experiment').textContent='Recorded interval · changing this slider previews the rule; it does not alter the artwork.'}if(b.hasAttribute('data-operation')){dlg.querySelectorAll('[data-operation]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));dlg.querySelector('.lab-op-explanation').textContent=['Offset: separate or displace planes to produce depth and a passage.','Fold: turn a surface into an enclosure, an overhang or an edge.','Subtract: an absence becomes an opening, a courtyard or a cut.','Overlap: fragments meet, changing the boundary and the reading of depth.'][+b.dataset.operation]}});
 dlg.addEventListener('change',e=>{if(e.target.id==='lab-event'){eventIndex=+e.target.value;render();jump(section);dlg.querySelector('#lab-event').focus()}});dlg.addEventListener('input',e=>{if(e.target.id==='lab-days'){drawWave(+e.target.value);dlg.querySelector('#lab-experiment').textContent='RULE EXPERIMENT · preview only; the recorded interval and original drawing remain unchanged.'}});
 // Pixel-accurate picking uses the same project mask as selection. Dragging never opens the page.
 const canvas=world.c;let down=null;
