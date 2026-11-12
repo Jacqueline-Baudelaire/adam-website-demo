@@ -1,6 +1,8 @@
 'use strict';
 
 const { demo, publishedArchive, themes, projects, events, artists } = window.archive;
+// Display name chosen for the published artwork; retain the source workbook heading.
+themes.find(theme => theme.id === 'T5').title = 'Others';
 const content = document.querySelector('#archive-content');
 const scrollPanel = document.querySelector('#archive-scroll');
 const search = document.querySelector('#search');
